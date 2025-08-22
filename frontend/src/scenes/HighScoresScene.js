@@ -102,17 +102,36 @@ export class HighScoresScene extends Phaser.Scene {
     this.scoreContainer.add(loadingText);
     
     try {
-      // Mock scores for now (will be replaced with backend API)
-      const mockScores = this.getMockScores(category);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://roguelike-phaser.preview.emergentagent.com';
       
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Fetch real leaderboard data
+      const params = new URLSearchParams({
+        limit: '10',
+        offset: '0',
+        daily: category === 'daily' ? 'true' : 'false'
+      });
       
-      this.displayScores(mockScores);
+      const response = await fetch(`${backendUrl}/api/leaderboard?${params}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.displayScores(data.rows.map((row, index) => ({
+          rank: index + 1,
+          name: `Player ${index + 1}`, // In production, would come from user system
+          score: row.score,
+          depth: row.depth,
+          artifacts: row.artifacts
+        })));
+      } else {
+        throw new Error('Failed to fetch leaderboard');
+      }
       
     } catch (error) {
       console.error('Failed to load scores:', error);
-      this.displayError();
+      
+      // Fall back to mock data
+      const mockScores = this.getMockScores(category);
+      this.displayScores(mockScores);
     }
   }
 
