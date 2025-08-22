@@ -223,7 +223,10 @@ export class GameState {
       baseRisk += this.riskPenalty;
     }
     
-    return Math.round(baseRisk);
+    // Apply RunModifiers for equipment effects
+    const finalRisk = runModifiers.calculateFinalRisk(baseRisk);
+    
+    return Math.round(finalRisk);
   }
 
   // Calculate current exit odds percentage  
@@ -243,7 +246,10 @@ export class GameState {
       this.altarBonus = 0; // One-time use
     }
     
-    return Math.round(baseOdds);
+    // Apply RunModifiers for equipment effects
+    const finalExit = runModifiers.calculateFinalExit(baseOdds);
+    
+    return Math.round(finalExit);
   }
 
   // Fair death check with accumulator system
