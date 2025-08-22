@@ -39,6 +39,7 @@ export default defineConfig({
       'localhost',
       '127.0.0.1',
       '.preview.emergentagent.com', // allow all Emergent preview hosts
+'roguelike-phaser.preview.emergentagent.com',
     ]
   }
 })
