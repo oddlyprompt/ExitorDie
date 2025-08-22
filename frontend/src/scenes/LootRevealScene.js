@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { gameRNG } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
+import { audioSystem } from '../utils/AudioSystem.js';
 
 export class LootRevealScene extends Phaser.Scene {
   constructor() {
