@@ -105,7 +105,7 @@ class ContentPack(BaseModel):
     sets: List[Set] = []
     value_multipliers: Dict[str, float] = {
         "Common": 1, "Uncommon": 1.2, "Rare": 1.5, "Epic": 2, "Mythic": 2.5,
-        "Ancient": 3, "Relic": 3.5, "Legendary": 4, "Transcendent": 5, "OneOfOne": 6
+        "Ancient": 3, "Relic": 3.5, "Legendary": 4, "Transcendent": 5, "1/1": 6
     }
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
