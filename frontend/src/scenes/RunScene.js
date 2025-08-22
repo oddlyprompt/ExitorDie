@@ -690,37 +690,48 @@ export class RunScene extends Phaser.Scene {
   }
 
   shouldGiveLoot() {
+    console.log('🎯 Checking for loot...');
     // Base loot chance
     let lootChance = 0.18;
+    console.log('🎯 Base loot chance:', lootChance);
     
     // Pity system (updated to 2 rooms, 6% bonus)
     if (gameState.shouldActivatePity()) {
       const bonusMultiplier = gameState.contentPack.pity?.bonus_next || 6;
       lootChance += bonusMultiplier / 100;
+      console.log('🎯 Pity system activated, new chance:', lootChance);
     }
     
     // Streak chest every 3 safe rooms
     if (gameState.safeRoomStreak >= 3) {
       lootChance += 0.35;
       gameState.safeRoomStreak = 0;
+      console.log('🎯 Streak chest activated, new chance:', lootChance);
     }
     
     // Curse modifier increases loot chance
     if (this.curseActive) {
       lootChance += 0.15;
       this.curseActive = false;
+      console.log('🎯 Curse modifier activated, new chance:', lootChance);
     }
     
     // Equipment loot bonus
     if (gameState.lootBonus) {
       lootChance += gameState.lootBonus / 100;
+      console.log('🎯 Equipment loot bonus activated, new chance:', lootChance);
     }
     
-    if (gameRNG.next() < lootChance) {
+    const roll = gameRNG.next();
+    console.log('🎯 Loot roll:', roll, 'vs chance:', lootChance);
+    
+    if (roll < lootChance) {
       gameState.roomsSinceLoot = 0;
+      console.log('✅ LOOT GRANTED!');
       return true;
     }
     
+    console.log('❌ No loot this time');
     return false;
   }
 
