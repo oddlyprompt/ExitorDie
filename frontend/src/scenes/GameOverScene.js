@@ -217,17 +217,25 @@ export class GameOverScene extends Phaser.Scene {
         version: "1.2.0",
         daily: gameState.isDailyRun || false,
         replayLog: {
-          depth: gameState.depth || 0,
-          score: gameState.score || 0,
-          treasureValue: gameState.treasureValue || 0,
-          roomsVisited: gameState.roomsVisited || 0,
-          actions: gameState.replayLog || []
+          seed: (gameState.seed || Date.now()).toString(),
+          contentVersion: "1.2.0",
+          rooms: (gameState.replayLog || []).map(action => ({
+            depth: action.depth || 0,
+            type: action.action || 'unknown',
+            choice: action.details || null
+          })),
+          choices: (gameState.replayLog || []).map(action => action.action || 'unknown'),
+          rolls: gameState.roomsVisited || 0,
+          items: gameState.inventory ? gameState.inventory.map(item => item.name || 'Unknown') : []
         },
         items: gameState.inventory ? gameState.inventory.map(item => ({
+          hash: item.hash || 'unknown',
           name: item.name || 'Unknown',
           rarity: item.rarity || 'Common',
+          set: null,
+          effects: item.effects || [],
           value: item.value || 0,
-          equipped: equippedItems.includes(item.name)
+          lore: item.lore || ""
         })) : []
       };
 
