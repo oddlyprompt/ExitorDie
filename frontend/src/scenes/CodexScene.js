@@ -162,7 +162,7 @@ export class CodexScene extends Phaser.Scene {
       'Relic': '#ec4899',
       'Legendary': '#06b6d4',
       'Transcendent': '#eab308',
-      'OneOfOne': '#dc2626'
+      '1/1': '#dc2626'
     };
     
     return rarityColors[rarity] || '#cccccc';
