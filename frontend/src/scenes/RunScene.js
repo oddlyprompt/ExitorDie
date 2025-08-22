@@ -838,6 +838,9 @@ export class RunScene extends Phaser.Scene {
   }
 
   triggerDeath() {
+    // Play death boom sound
+    audioSystem.playDeathBoom();
+    
     // Death screen shake and fade
     this.cameras.main.shake(500, 0.05);
     this.cameras.main.fadeOut(1000, 0, 0, 0);
