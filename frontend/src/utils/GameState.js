@@ -364,6 +364,14 @@ export class GameState {
     return Math.floor((this.treasureValue + equippedValue + bankedValue) * greedMultiplier);
   }
 
+  // Calculate hazard budget for room modifiers
+  getHazardBudget() {
+    // Budget increases with depth and greed, allowing more expensive modifiers
+    const depthBudget = Math.floor(this.depth / 3) + 1; // 1-4 budget based on depth
+    const greedBudget = Math.floor(this.greed / 4); // 0-2 budget based on greed
+    return Math.min(depthBudget + greedBudget, 5); // Cap at 5
+  }
+
   // Take damage with revive check
   takeDamage(amount = 1) {
     this.hp = Math.max(0, this.hp - amount);
