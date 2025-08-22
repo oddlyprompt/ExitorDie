@@ -614,6 +614,7 @@ async def submit_score(request: Request, submission: ScoreSubmission):
             day = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         
         score_record = Score(
+            username=submission.username,
             seed=submission.seed,
             version=submission.version,
             daily=submission.daily,
