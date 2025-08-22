@@ -57,7 +57,7 @@ export class BootScene extends Phaser.Scene {
   async create() {
     // Try to fetch content pack from backend
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://exitordieplay.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
       
       // Fetch content pack
       console.log('Fetching content pack from backend...');

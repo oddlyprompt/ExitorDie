@@ -6,283 +6,181 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: 'GameOverScene' });
   }
 
-  init(data) {
-    this.victory = data.victory || false;
-  }
-
   create() {
     // Background
     const bg = this.add.graphics();
-    if (this.victory) {
-      bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x0a3d2e, 0x0a3d2e, 1);
-    } else {
-      bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x3d0a0a, 0x3d0a0a, 1);
-    }
+    bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1);
     bg.fillRect(0, 0, 375, 667);
 
-    // Title
-    const titleText = this.victory ? 'VICTORY!' : 'GAME OVER';
-    const titleColor = this.victory ? '#4ecdc4' : '#ff6b6b';
-    
-    this.add.text(187.5, 100, titleText, {
+    // Game Over text
+    this.add.text(187.5, 150, 'GAME OVER', {
       fontSize: '36px',
-      fill: titleColor,
+      fill: '#ff6b6b',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
-    // Run summary
-    this.createRunSummary();
-    
+    // Death message based on cause
+    const deathMessage = this.getDeathMessage();
+    this.add.text(187.5, 200, deathMessage, {
+      fontSize: '14px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New',
+      align: 'center',
+      wordWrap: { width: 300 }
+    }).setOrigin(0.5);
+
+    // Stats display
+    this.displayStats();
+
     // Buttons
-    this.createButtons();
-    
-    // Debug toggle for replay log
-    if (process.env.NODE_ENV === 'development') {
-      this.createDebugButtons();
+    this.createButton(187.5, 500, 'NEW RUN', () => this.newRun());
+    this.createButton(187.5, 550, 'HIGH SCORES', () => this.showHighScores());
+    this.createButton(187.5, 600, 'TITLE SCREEN', () => this.returnToTitle());
+
+    // Auto-submit score if we have a username
+    if (gameState.username) {
+      this.submitScore();
     }
   }
 
-  createRunSummary() {
-    const summaryContainer = this.add.container(187.5, 280);
+  getDeathMessage() {
+    const messages = {
+      'cursed_treasure': "The cursed gold claimed your soul...",
+      'room_hazard': "The dungeon's dangers overwhelmed you...",
+      'greed': "Your greed became your downfall...",
+      'bad_luck': "Fortune was not on your side...",
+      'default': "You fell to the dungeon's perils..."
+    };
     
-    // Stats background
-    const statsBg = this.add.rectangle(0, 0, 320, 200, 0x333333, 0.8);
-    statsBg.setStrokeStyle(2, this.victory ? 0x4ecdc4 : 0xff6b6b);
-    
-    // Final score (large)
-    const scoreText = this.add.text(0, -70, `SCORE: ${gameState.score}`, {
-      fontSize: '24px',
-      fill: '#feca57',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-    
-    // Run statistics
+    return messages[gameState.deathCause] || messages.default;
+  }
+
+  displayStats() {
     const stats = [
       `Depth Reached: ${gameState.depth}`,
-      `Artifacts Found: ${gameState.artifacts.length}`,
+      `Rooms Visited: ${gameState.roomsVisited}`,
       `Treasure Value: ${gameState.treasureValue}`,
-      `Final Greed: ${gameState.greed}/10`,
-      `Rooms Visited: ${gameState.roomsVisited}`
+      `Final Score: ${gameState.score}`,
+      ''
     ];
-    
-    stats.forEach((stat, index) => {
-      const statText = this.add.text(0, -30 + (index * 20), stat, {
-        fontSize: '14px',
-        fill: '#cccccc',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      summaryContainer.add(statText);
-    });
-    
-    summaryContainer.add([statsBg, scoreText]);
-    
-    // Show artifacts collected
-    if (gameState.artifacts.length > 0) {
-      this.createArtifactsList();
-    }
-  }
 
-  createArtifactsList() {
-    const artifactsContainer = this.add.container(187.5, 450);
-    
-    const title = this.add.text(0, -40, 'ARTIFACTS COLLECTED:', {
-      fontSize: '16px',
-      fill: '#8b5cf6',
-      fontFamily: 'Courier New'
+    // Add equipped items if any
+    if (gameState.inventory.length > 0) {
+      stats.push('Items Found:');
+      gameState.inventory.forEach(item => {
+        stats.push(`• ${item.name} (${item.rarity})`);
+      });
+    }
+
+    if (gameState.equippedArtifacts.length > 0) {
+      stats.push('');
+      stats.push('Equipped Artifacts:');
+      gameState.equippedArtifacts.forEach(artifact => {
+        stats.push(`• ${artifact.name}`);
+      });
+    }
+
+    this.add.text(187.5, 280, stats.join('\n'), {
+      fontSize: '12px',
+      fill: '#ffffff',
+      fontFamily: 'Courier New',
+      align: 'center'
     }).setOrigin(0.5);
-    
-    artifactsContainer.add(title);
-    
-    gameState.artifacts.slice(0, 3).forEach((artifact, index) => {
-      const artifactText = this.add.text(0, -15 + (index * 15), 
-        `• ${artifact.name} (${artifact.rarity})`, {
-        fontSize: '12px',
-        fill: '#cccccc',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      
-      artifactsContainer.add(artifactText);
-    });
-    
-    if (gameState.artifacts.length > 3) {
-      const moreText = this.add.text(0, 30, `... and ${gameState.artifacts.length - 3} more`, {
-        fontSize: '12px',
-        fill: '#666666',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      artifactsContainer.add(moreText);
-    }
   }
 
-  createButtons() {
-    // Retry button
-    this.createButton(187.5, 520, 'RETRY', () => this.retry(), '#ff6b6b');
-    
-    // Title button
-    this.createButton(187.5, 570, 'TITLE', () => this.goToTitle(), '#cccccc');
-    
-    // Submit score button (if backend available)
-    this.createButton(187.5, 620, 'SUBMIT SCORE', () => this.submitScore(), '#4ecdc4');
-  }
-
-  createButton(x, y, text, callback, color = '#ffffff') {
+  createButton(x, y, text, callback) {
     const button = this.add.container(x, y);
     
-    const bg = this.add.rectangle(0, 0, 150, 35, 0x333333, 0.8);
-    bg.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
+    // Button background
+    const bg = this.add.rectangle(0, 0, 180, 30, 0x333333, 0.8);
+    bg.setStrokeStyle(2, 0xff6b6b);
     
+    // Button text
     const buttonText = this.add.text(0, 0, text, {
-      fontSize: '14px',
-      fill: color,
+      fontSize: '12px',
+      fill: '#ffffff',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
-    
+
     button.add([bg, buttonText]);
-    button.setSize(150, 35);
+    button.setSize(180, 30);
     button.setInteractive();
-    
+
+    // Hover effects
     button.on('pointerover', () => {
-      bg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.2);
+      bg.setFillStyle(0xff6b6b, 0.3);
       buttonText.setScale(1.05);
     });
-    
+
     button.on('pointerout', () => {
       bg.setFillStyle(0x333333, 0.8);
       buttonText.setScale(1);
     });
-    
-    button.on('pointerup', callback);
-  }
 
-  createDebugButtons() {
-    // Download replay log button
-    const debugBtn = this.add.text(10, 10, 'Download Replay', {
-      fontSize: '12px',
-      fill: '#666666',
-      fontFamily: 'Courier New'
-    }).setInteractive();
-    
-    debugBtn.on('pointerup', () => {
-      this.downloadReplayLog();
+    button.on('pointerdown', () => {
+      buttonText.setScale(0.95);
     });
-  }
 
-  retry() {
-    // Reset game state and start new run with same settings
-    const wasDailyRun = gameState.isDailyRun;
-    const originalSeed = gameState.seed;
-    
-    gameState.reset();
-    
-    if (wasDailyRun) {
-      gameState.isDailyRun = true;
-      gameState.seed = originalSeed;
-    }
-    
-    this.scene.start('RunScene');
-  }
+    button.on('pointerup', () => {
+      buttonText.setScale(1.05);
+      callback();
+    });
 
-  goToTitle() {
-    this.scene.start('TitleScene');
+    return button;
   }
 
   async submitScore() {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://exitordieplay.preview.emergentagent.com';
-      
-      const scoreData = {
-        seed: gameState.seed.toString(),
-        version: gameState.contentPack.version,
-        daily: gameState.isDailyRun,
-        replayLog: gameState.replayLog,
-        items: gameState.artifacts.map(artifact => ({
-          hash: artifact.id || artifact.hash,
-          name: artifact.name,
-          rarity: artifact.rarity,
-          set: artifact.set || null,
-          effects: artifact.effects || [],
-          value: artifact.value,
-          lore: artifact.lore || ""
-        }))
-      };
-      
-      console.log('Submitting score:', scoreData);
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
       
       const response = await fetch(`${backendUrl}/api/score/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(scoreData)
+        body: JSON.stringify({
+          username: gameState.username,
+          score: gameState.score,
+          depth: gameState.depth,
+          seed: gameState.seed,
+          seedString: gameState.seedString || null,
+          isDailyRun: gameState.isDailyRun,
+          treasureValue: gameState.treasureValue,
+          roomsVisited: gameState.roomsVisited,
+          equippedItems: gameState.equippedArtifacts.map(item => item.name),
+          replayLog: gameState.replayLog
+        })
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('Score submitted successfully:', result);
         
-        // Show submission success with placement
-        const feedback = this.add.text(187.5, 650, 
-          `Score submitted! Rank #${result.placement}`, {
-          fontSize: '12px',
-          fill: '#4ecdc4',
-          fontFamily: 'Courier New'
-        }).setOrigin(0.5);
-        
-        this.tweens.add({
-          targets: feedback,
-          alpha: 0,
-          duration: 3000,
-          onComplete: () => feedback.destroy()
-        });
-        
+        // Show confirmation if needed
+        if (result.validated) {
+          this.add.text(187.5, 450, 'Score submitted and validated!', {
+            fontSize: '10px',
+            fill: '#4ecdc4',
+            fontFamily: 'Courier New'
+          }).setOrigin(0.5);
+        }
       } else {
-        const error = await response.json();
-        console.error('Score submission failed:', error);
-        
-        const errorText = this.add.text(187.5, 650, 
-          `Submission failed: ${error.detail || 'Unknown error'}`, {
-          fontSize: '12px',
-          fill: '#ff6b6b',
-          fontFamily: 'Courier New'
-        }).setOrigin(0.5);
-        
-        this.tweens.add({
-          targets: errorText,
-          alpha: 0,
-          duration: 3000,
-          onComplete: () => errorText.destroy()
-        });
+        console.warn('Failed to submit score');
       }
-      
     } catch (error) {
-      console.error('Score submission failed:', error);
-      
-      const errorText = this.add.text(187.5, 650, 'Network error', {
-        fontSize: '12px',
-        fill: '#ff6b6b',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      
-      this.tweens.add({
-        targets: errorText,
-        alpha: 0,
-        duration: 2000,
-        onComplete: () => errorText.destroy()
-      });
+      console.warn('Error submitting score:', error);
     }
   }
 
-  downloadReplayLog() {
-    const replayData = JSON.stringify(gameState.replayLog, null, 2);
-    const blob = new Blob([replayData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `exit-or-die-replay-${gameState.seed}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  newRun() {
+    this.scene.start('TitleScene');
+  }
+
+  showHighScores() {
+    this.scene.start('HighScoresScene');
+  }
+
+  returnToTitle() {
+    this.scene.start('TitleScene');
   }
 }
