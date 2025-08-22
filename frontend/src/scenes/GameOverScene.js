@@ -67,36 +67,59 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   displayStats() {
-    const stats = [
-      `Depth Reached: ${gameState.depth}`,
-      `Rooms Visited: ${gameState.roomsVisited}`,
-      `Treasure Value: ${gameState.treasureValue}`,
-      `Final Score: ${gameState.score}`,
-      ''
-    ];
+    console.log('🎯 displayStats called with gameState:', gameState);
+    
+    try {
+      const stats = [
+        `Depth Reached: ${gameState.depth || 0}`,
+        `Rooms Visited: ${gameState.roomsVisited || 0}`,
+        `Treasure Value: ${gameState.treasureValue || 0}`,
+        `Final Score: ${gameState.score || 0}`,
+        ''
+      ];
 
-    // Add equipped items if any
-    if (gameState.inventory.length > 0) {
-      stats.push('Items Found:');
-      gameState.inventory.forEach(item => {
-        stats.push(`• ${item.name} (${item.rarity})`);
-      });
+      // Add equipped items if any (with safety check)
+      const inventory = gameState.inventory || [];
+      if (inventory.length > 0) {
+        stats.push('Items Found:');
+        inventory.forEach(item => {
+          const itemName = item?.name || 'Unknown Item';
+          const itemRarity = item?.rarity || 'Unknown';
+          stats.push(`• ${itemName} (${itemRarity})`);
+        });
+      }
+
+      // Add equipped artifacts (with safety check)  
+      const equippedArtifacts = gameState.equippedArtifacts || [];
+      if (equippedArtifacts.length > 0) {
+        stats.push('');
+        stats.push('Equipped Artifacts:');
+        equippedArtifacts.forEach(artifact => {
+          const artifactName = artifact?.name || 'Unknown Artifact';
+          stats.push(`• ${artifactName}`);
+        });
+      }
+
+      console.log('🎯 Stats to display:', stats);
+
+      this.add.text(187.5, 280, stats.join('\n'), {
+        fontSize: '12px',
+        fill: '#ffffff',
+        fontFamily: 'Courier New',
+        align: 'center'
+      }).setOrigin(0.5);
+      
+      console.log('✅ Stats displayed successfully');
+    } catch (error) {
+      console.error('❌ Error in displayStats:', error);
+      // Fallback display
+      this.add.text(187.5, 280, 'Game statistics unavailable', {
+        fontSize: '12px',
+        fill: '#ffffff',
+        fontFamily: 'Courier New',
+        align: 'center'
+      }).setOrigin(0.5);
     }
-
-    if (gameState.equippedArtifacts.length > 0) {
-      stats.push('');
-      stats.push('Equipped Artifacts:');
-      gameState.equippedArtifacts.forEach(artifact => {
-        stats.push(`• ${artifact.name}`);
-      });
-    }
-
-    this.add.text(187.5, 280, stats.join('\n'), {
-      fontSize: '12px',
-      fill: '#ffffff',
-      fontFamily: 'Courier New',
-      align: 'center'
-    }).setOrigin(0.5);
   }
 
   createButton(x, y, text, callback) {
