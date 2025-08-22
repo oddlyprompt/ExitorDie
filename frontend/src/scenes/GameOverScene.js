@@ -6,6 +6,12 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: 'GameOverScene' });
   }
 
+  init(data) {
+    // Check if this was a victory (successful exit) or death
+    this.isVictory = data && data.victory;
+    console.log('🎯 GameOverScene init - isVictory:', this.isVictory);
+  }
+
   create() {
     console.log('🎯 GameOverScene create() called');
     try {
