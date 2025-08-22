@@ -79,6 +79,20 @@ export class GameOverScene extends Phaser.Scene {
     return messages[gameState.deathCause] || messages.default;
   }
 
+  getVictoryMessage() {
+    const victoryMessages = [
+      "You emerged from the depths with your treasures!",
+      "Fortune smiled upon you as you escaped the dungeon!",
+      "Your courage and cunning led you to victory!",
+      "The darkness could not claim you this day!",
+      "You've proven yourself a true treasure hunter!"
+    ];
+    
+    // Use depth to pick a consistent message per run
+    const messageIndex = (gameState.depth || 0) % victoryMessages.length;
+    return victoryMessages[messageIndex];
+  }
+
   displayStats() {
     console.log('🎯 displayStats called with gameState:', gameState);
     
