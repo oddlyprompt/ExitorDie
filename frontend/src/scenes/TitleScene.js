@@ -153,6 +153,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   createButton(x, y, text, callback) {
+    console.log(`🎯 Creating button: ${text} at position ${x}, ${y}`);
     const button = this.add.container(x, y);
     
     // Button background
@@ -170,26 +171,35 @@ export class TitleScene extends Phaser.Scene {
     button.setSize(200, 35);
     button.setInteractive();
 
-    // Hover effects
+    // Add debugging to all events
     button.on('pointerover', () => {
+      console.log(`🎯 ${text} button hovered`);
       bg.setFillStyle(0xff6b6b, 0.3);
       buttonText.setScale(1.05);
     });
 
     button.on('pointerout', () => {
+      console.log(`🎯 ${text} button unhovered`);
       bg.setFillStyle(0x333333, 0.8);
       buttonText.setScale(1);
     });
 
     button.on('pointerdown', () => {
+      console.log(`🎯 ${text} button pressed down`);
       buttonText.setScale(0.95);
     });
 
     button.on('pointerup', () => {
+      console.log(`🎯 ${text} button released - executing callback`);
       buttonText.setScale(1.05);
-      callback();
+      try {
+        callback();
+      } catch (error) {
+        console.error(`❌ Error in ${text} button callback:`, error);
+      }
     });
 
+    console.log(`✅ Button ${text} created successfully`);
     return button;
   }
 
