@@ -643,6 +643,13 @@ export class RunScene extends Phaser.Scene {
 
   // Standard room actions
   continueChoice() {
+    // Log the action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'continue',
+      details: 'Safe continue'
+    });
+    
     gameState.increaseGreed(1);
     gameState.roomsSinceLoot++;
     gameState.safeRoomStreak++;
@@ -663,8 +670,17 @@ export class RunScene extends Phaser.Scene {
   }
 
   exitChoice() {
+    // Log the action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'exit',
+      details: 'Successfully exited'
+    });
+    
     // Calculate final score
     gameState.score = gameState.calculateScore();
+    
+    // Transition to victory screen
     this.scene.start('GameOverScene', { victory: true });
   }
 
