@@ -213,27 +213,40 @@ export class TitleScene extends Phaser.Scene {
 
   startNewRun() {
     console.log('🎯 NEW RUN button clicked - starting new run');
+    console.log('🎯 gameState:', gameState);
+    console.log('🎯 setSeed function:', setSeed);
+    console.log('🎯 gameRNG:', gameRNG);
+    
     try {
+      console.log('🎯 Step 1: Calling gameState.reset()');
       gameState.reset();
+      console.log('🎯 Step 2: GameState reset complete');
+      
       gameState.isDailyRun = false;
+      console.log('🎯 Step 3: Set isDailyRun to false');
       
       // Use custom seed if provided, otherwise generate new
       if (gameState.seedString) {
-        console.log('🎯 Using custom seed:', gameState.seed);
+        console.log('🎯 Step 4a: Using custom seed:', gameState.seed);
         setSeed(gameState.seed);
       } else {
-        console.log('🎯 Generating new seed...');
+        console.log('🎯 Step 4b: Generating new seed...');
         const seed = Date.now() + gameRNG.nextInt(0, 999999);
-        console.log('🎯 Generated seed:', seed);
+        console.log('🎯 Step 4c: Generated seed:', seed);
         setSeed(seed);
         gameState.seed = seed;
+        console.log('🎯 Step 4d: Seed set successfully');
       }
       
-      console.log('🎯 Transitioning to RunScene...');
+      console.log('🎯 Step 5: About to transition to RunScene...');
+      console.log('🎯 Scene object:', this.scene);
+      console.log('🎯 Scene.start method:', this.scene.start);
+      
       this.scene.start('RunScene');
-      console.log('🎯 Scene.start called successfully');
+      console.log('🎯 Step 6: Scene.start called successfully');
     } catch (error) {
       console.error('❌ Error in startNewRun:', error);
+      console.error('❌ Error stack:', error.stack);
     }
   }
 
