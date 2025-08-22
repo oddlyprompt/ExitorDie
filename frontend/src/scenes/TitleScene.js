@@ -40,7 +40,7 @@ export class TitleScene extends Phaser.Scene {
     this.createButton(187.5, 600, 'FULLSCREEN', () => this.toggleFullscreen());
 
     // Version info
-    this.add.text(10, 650, 'v1.0.0', {
+    this.add.text(10, 650, 'v1.0.2', {
       fontSize: '12px',
       fill: '#666666',
       fontFamily: 'Courier New'
@@ -131,29 +131,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   showOptions() {
-    // Options modal (placeholder)
-    const modal = this.add.container(187.5, 333.5);
-    
-    const bg = this.add.rectangle(0, 0, 300, 400, 0x000000, 0.9);
-    bg.setStrokeStyle(2, 0xff6b6b);
-    
-    const title = this.add.text(0, -150, 'OPTIONS', {
-      fontSize: '24px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-
-    const closeBtn = this.add.text(120, -170, 'X', {
-      fontSize: '20px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5).setInteractive();
-
-    closeBtn.on('pointerup', () => {
-      modal.destroy();
-    });
-
-    modal.add([bg, title, closeBtn]);
+    this.scene.start('OptionsScene');
   }
 
   toggleFullscreen() {
