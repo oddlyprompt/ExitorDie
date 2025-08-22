@@ -381,11 +381,17 @@ export class GameState {
 
   // Recalculate run modifiers from equipped items and consumables
   recalculateModifiers() {
-    const equippedArtifacts = this.equipSystem.getEquippedItems();
-    const consumables = this.inventory.filter(item => item.charges && item.charges > 0);
-    
-    runModifiers.calculateFromEquipment(equippedArtifacts, consumables);
-    console.log('🔧 Modifiers recalculated:', runModifiers.getSummary());
+    try {
+      const equippedArtifacts = this.equipSystem.getEquippedItems();
+      const consumables = this.inventory.filter(item => item.charges && item.charges > 0);
+      
+      runModifiers.calculateFromEquipment(equippedArtifacts, consumables);
+      console.log('🔧 Modifiers recalculated:', runModifiers.getSummary());
+    } catch (error) {
+      console.error('❌ Error in recalculateModifiers:', error);
+      // Reset to safe state
+      runModifiers.reset();
+    }
   }
 
   // Enhanced damage system with revive support
