@@ -7,39 +7,50 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   create() {
-    // Background
-    const bg = this.add.graphics();
-    bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1);
-    bg.fillRect(0, 0, 375, 667);
+    console.log('🎯 GameOverScene create() called');
+    try {
+      // Background
+      const bg = this.add.graphics();
+      bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1);
+      bg.fillRect(0, 0, 375, 667);
 
-    // Game Over text
-    this.add.text(187.5, 150, 'GAME OVER', {
-      fontSize: '36px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
+      // Game Over text
+      this.add.text(187.5, 150, 'GAME OVER', {
+        fontSize: '36px',
+        fill: '#ff6b6b',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
 
-    // Death message based on cause
-    const deathMessage = this.getDeathMessage();
-    this.add.text(187.5, 200, deathMessage, {
-      fontSize: '14px',
-      fill: '#cccccc',
-      fontFamily: 'Courier New',
-      align: 'center',
-      wordWrap: { width: 300 }
-    }).setOrigin(0.5);
+      // Death message based on cause
+      const deathMessage = this.getDeathMessage();
+      this.add.text(187.5, 200, deathMessage, {
+        fontSize: '14px',
+        fill: '#cccccc',
+        fontFamily: 'Courier New',
+        align: 'center',
+        wordWrap: { width: 300 }
+      }).setOrigin(0.5);
 
-    // Stats display
-    this.displayStats();
+      // Stats display
+      console.log('🎯 Creating stats display...');
+      this.displayStats();
 
-    // Buttons
-    this.createButton(187.5, 500, 'NEW RUN', () => this.newRun());
-    this.createButton(187.5, 550, 'HIGH SCORES', () => this.showHighScores());
-    this.createButton(187.5, 600, 'TITLE SCREEN', () => this.returnToTitle());
+      // Buttons
+      console.log('🎯 Creating buttons...');
+      this.createButton(187.5, 500, 'NEW RUN', () => this.newRun());
+      this.createButton(187.5, 550, 'HIGH SCORES', () => this.showHighScores());
+      this.createButton(187.5, 600, 'TITLE SCREEN', () => this.returnToTitle());
 
-    // Auto-submit score if we have a username
-    if (gameState.username) {
-      this.submitScore();
+      // Auto-submit score if we have a username
+      if (gameState.username) {
+        console.log('🎯 Auto-submitting score for user:', gameState.username);
+        this.submitScore();
+      }
+      
+      console.log('✅ GameOverScene created successfully');
+    } catch (error) {
+      console.error('❌ Error in GameOverScene create():', error);
+      console.error('❌ Error stack:', error.stack);
     }
   }
 
