@@ -46,11 +46,16 @@ export class CodexScene extends Phaser.Scene {
   }
 
   getDiscoveredArtifacts() {
-    // In a full implementation, this would check persistent discovery data
-    // For now, return currently collected artifacts
-    return gameState.artifacts.filter((artifact, index, self) => 
-      index === self.findIndex(a => a.name === artifact.name)
-    );
+    // Use the new discovery tracking system
+    const discovered = [];
+    for (const itemId of gameState.discoveredItems) {
+      // Find the artifact in the content pack
+      const artifact = gameState.contentPack.artifacts.find(a => a.id === itemId);
+      if (artifact) {
+        discovered.push(artifact);
+      }
+    }
+    return discovered;
   }
 
   loadCodexEntries() {
