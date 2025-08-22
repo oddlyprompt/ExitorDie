@@ -200,22 +200,32 @@ export class GameOverScene extends Phaser.Scene {
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
       
+      // Get equipped items safely
+      let equippedItems = [];
+      try {
+        if (gameState.equipSystem) {
+          equippedItems = gameState.equipSystem.getEquippedItems().map(item => item.name || 'Unknown');
+        }
+      } catch (equipError) {
+        console.warn('Could not get equipped items:', equipError);
+      }
+      
       const response = await fetch(`${backendUrl}/api/score/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          username: gameState.username,
-          score: gameState.score,
-          depth: gameState.depth,
-          seed: gameState.seed,
+          username: gameState.username || 'Anonymous',
+          score: gameState.score || 0,
+          depth: gameState.depth || 0,
+          seed: gameState.seed || Date.now(),
           seedString: gameState.seedString || null,
-          isDailyRun: gameState.isDailyRun,
-          treasureValue: gameState.treasureValue,
-          roomsVisited: gameState.roomsVisited,
-          equippedItems: gameState.equippedArtifacts.map(item => item.name),
-          replayLog: gameState.replayLog
+          isDailyRun: gameState.isDailyRun || false,
+          treasureValue: gameState.treasureValue || 0,
+          roomsVisited: gameState.roomsVisited || 0,
+          equippedItems: equippedItems,
+          replayLog: gameState.replayLog || []
         })
       });
 
@@ -232,10 +242,11 @@ export class GameOverScene extends Phaser.Scene {
           }).setOrigin(0.5);
         }
       } else {
-        console.warn('Failed to submit score');
+        console.warn('Failed to submit score, status:', response.status);
       }
     } catch (error) {
-      console.warn('Error submitting score:', error);
+      console.error('❌ Error submitting score:', error);
+      console.error('❌ Error details:', error.message, error.stack);
     }
   }
 
