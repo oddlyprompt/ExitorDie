@@ -132,6 +132,7 @@ class SubmittedItem(BaseModel):
     lore: str = ""
 
 class ScoreSubmission(BaseModel):
+    username: Optional[str] = None
     seed: str
     version: str
     daily: bool
