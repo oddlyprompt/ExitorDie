@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
+import { audioSystem } from '../utils/AudioSystem.js';
 
 export class OptionsScene extends Phaser.Scene {
   constructor() {
@@ -13,27 +14,54 @@ export class OptionsScene extends Phaser.Scene {
     bg.fillRect(0, 0, 375, 667);
 
     // Title
-    this.add.text(187.5, 100, 'OPTIONS', {
+    this.add.text(187.5, 80, 'OPTIONS', {
       fontSize: '28px',
       fill: '#ff6b6b',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
+    // Audio Section
+    this.add.text(187.5, 140, 'AUDIO', {
+      fontSize: '18px',
+      fill: '#4ecdc4',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    // Music Volume Slider
+    this.createVolumeSlider(
+      187.5, 180,
+      'MUSIC VOLUME',
+      audioSystem.musicVolume,
+      (value) => { audioSystem.setMusicVolume(value); }
+    );
+
+    // SFX Volume Slider
+    this.createVolumeSlider(
+      187.5, 240, 
+      'SFX VOLUME',
+      audioSystem.sfxVolume,
+      (value) => { 
+        audioSystem.setSfxVolume(value);
+        // Play test sound
+        setTimeout(() => audioSystem.playLootChime(), 50);
+      }
+    );
+
+    // Game Section
+    this.add.text(187.5, 320, 'GAME', {
+      fontSize: '18px',
+      fill: '#4ecdc4',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
     // Fast Wheel Toggle
     this.createToggle(
-      187.5, 200,
+      187.5, 360,
       'FAST WHEEL',
       'Reduces wheel spin time to 900ms',
       gameState.fastWheel,
       (value) => { gameState.fastWheel = value; }
     );
-
-    // Future options can be added here
-    this.add.text(187.5, 300, 'More options coming soon...', {
-      fontSize: '14px',
-      fill: '#666666',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
 
     // Back button
     this.createBackButton();
