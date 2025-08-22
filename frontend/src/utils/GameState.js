@@ -373,6 +373,74 @@ export class GameState {
     return Math.min(depthBudget + greedBudget, 5); // Cap at 5
   }
 
+  // Recalculate run modifiers from equipped items and consumables
+  recalculateModifiers() {
+    const equippedArtifacts = this.equipSystem.getEquippedItems();
+    const consumables = this.inventory.filter(item => item.charges && item.charges > 0);
+    
+    runModifiers.calculateFromEquipment(equippedArtifacts, consumables);
+    console.log('🔧 Modifiers recalculated:', runModifiers.getSummary());
+  }
+
+  // Enhanced damage system with revive support
+  takeDamage(amount) {
+    this.hp -= amount;
+    
+    if (this.hp <= 0) {
+      // Check for revive charges
+      if (runModifiers.useRevive()) {
+        this.hp = 1;
+        this.deathCause = null;
+        
+        // Log the revive event
+        this.replayLog.push({
+          depth: this.depth,
+          action: 'revive',
+          details: 'Phoenix saves you'
+        });
+        
+        console.log('♻ Player revived! HP restored to 1');
+        return false; // Player survived
+      }
+      
+      this.hp = 0;
+      console.log('💀 Player died');
+      return true; // Player died
+    }
+    
+    return false; // Player survived
+  }
+
+  // Milestone room entry effects
+  onMilestoneEntry() {
+    // Apply heal from equipment
+    if (runModifiers.heal_on_milestone > 0) {
+      const healAmount = runModifiers.heal_on_milestone;
+      this.heal(healAmount);
+      
+      console.log(`🩹 Milestone healing: +${healAmount} HP from equipment`);
+      
+      // Log the milestone heal
+      this.replayLog.push({
+        depth: this.depth,
+        action: 'milestone_heal',
+        details: `Equipment healed ${healAmount} HP`
+      });
+    }
+  }
+
+  // Enhanced continue action with greed modifiers
+  onContinueAction() {
+    // Apply base greed increase
+    const baseGreedIncrease = 1;
+    const modifierGreedIncrease = runModifiers.greed_delta_on_continue;
+    const totalGreedIncrease = Math.max(0, baseGreedIncrease + modifierGreedIncrease);
+    
+    this.increaseGreed(totalGreedIncrease);
+    
+    console.log(`💰 Continue action: +${totalGreedIncrease} greed (base: ${baseGreedIncrease}, modifier: ${modifierGreedIncrease})`);
+  }
+
   // Take damage with revive check
   takeDamage(amount = 1) {
     this.hp = Math.max(0, this.hp - amount);
