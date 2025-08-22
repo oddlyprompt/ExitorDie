@@ -310,6 +310,9 @@ export class RunScene extends Phaser.Scene {
   }
 
   createMilestoneRoom() {
+    // Play milestone whoosh sound
+    audioSystem.playMilestoneWhoosh();
+
     // Milestone banner
     const banner = this.add.container(0, -150);
     const bannerBg = this.add.rectangle(0, 0, 280, 40, 0xfeca57, 0.9);
