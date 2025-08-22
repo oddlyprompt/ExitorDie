@@ -29,6 +29,11 @@ export class GameOverScene extends Phaser.Scene {
       const titleText = this.isVictory ? 'VICTORY!' : 'GAME OVER';
       const titleColor = this.isVictory ? '#4ecdc4' : '#ff6b6b';
       
+      // Play appropriate sound
+      if (this.isVictory) {
+        audioSystem.playVictory();
+      }
+      
       this.add.text(187.5, 150, titleText, {
         fontSize: '36px',
         fill: titleColor,
