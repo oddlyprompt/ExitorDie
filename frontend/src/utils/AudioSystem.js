@@ -24,6 +24,11 @@ export class AudioSystem {
       // Create AudioContext (requires user interaction)
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
+      // Check if context is suspended and try to resume
+      if (this.audioContext.state === 'suspended') {
+        console.log('🎵 AudioContext suspended, waiting for user interaction...');
+      }
+      
       // Create master gain node
       this.masterGain = this.audioContext.createGain();
       this.masterGain.connect(this.audioContext.destination);
@@ -38,13 +43,17 @@ export class AudioSystem {
       // Load settings from localStorage
       this.loadSettings();
       
-      // Load and start background music
-      await this.loadBackgroundMusic();
+      // Try to load background music (non-blocking)
+      this.loadBackgroundMusic().catch(error => {
+        console.warn('🎵 Background music failed to load:', error.message);
+      });
       
       this.isInitialized = true;
-      console.log('✅ AudioSystem initialized');
+      console.log('✅ AudioSystem initialized (music may load separately)');
     } catch (error) {
       console.warn('❌ AudioSystem initialization failed:', error);
+      // Set flag to prevent further attempts
+      this.isInitialized = true; // Still mark as initialized to prevent loops
     }
   }
 
