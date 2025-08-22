@@ -8,6 +8,12 @@ export class RunScene extends Phaser.Scene {
     console.log('🎯 RunScene constructor called');
   }
 
+  init(data) {
+    // Check if we should generate a new room (coming from LootRevealScene)
+    this.shouldGenerateNewRoom = data && data.generateNewRoom;
+    console.log('🎯 RunScene init - shouldGenerateNewRoom:', this.shouldGenerateNewRoom);
+  }
+
   create() {
     console.log('🎯 RunScene create() method called');
     try {
@@ -19,9 +25,14 @@ export class RunScene extends Phaser.Scene {
       console.log('🎯 Creating HUD...');
       this.createHUD();
       
-      // Generate first room
-      console.log('🎯 Generating first room...');
-      this.generateRoom();
+      // Generate room - either first room or new room after loot
+      if (this.shouldGenerateNewRoom) {
+        console.log('🎯 Generating NEW room after loot...');
+        this.generateRoom();
+      } else {
+        console.log('🎯 Generating FIRST room...');
+        this.generateRoom();
+      }
       
       // Track screen shake camera
       console.log('🎯 Setting camera background...');
