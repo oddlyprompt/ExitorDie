@@ -160,6 +160,41 @@ class ExitOrDieAPITester:
             print(f"   ✅ Depth: {response.get('depth')}")
         return success
 
+    def test_custom_seed_endpoint(self):
+        """Test custom seed conversion endpoint"""
+        test_seeds = [
+            "test123",
+            "MyCustomSeed",
+            "hello-world",
+            "Exit_or_Die_2024",
+            ""
+        ]
+        
+        all_passed = True
+        for seed_str in test_seeds:
+            success, response = self.run_test(
+                f"Custom Seed: '{seed_str}'", 
+                "GET", 
+                f"api/seed/play?seedStr={seed_str}", 
+                200 if seed_str else 400  # Empty string should fail
+            )
+            
+            if success and seed_str:
+                required_fields = ['seed64', 'normalized']
+                for field in required_fields:
+                    if field not in response:
+                        print(f"   ⚠️  Missing required field: {field}")
+                        all_passed = False
+                        break
+                else:
+                    print(f"   ✅ Seed64: {response.get('seed64')}")
+                    print(f"   ✅ Normalized: '{response.get('normalized')}'")
+            
+            if not success:
+                all_passed = False
+        
+        return all_passed
+
     def test_admin_content_update(self):
         """Test admin content update (should fail without proper auth)"""
         test_content = {
