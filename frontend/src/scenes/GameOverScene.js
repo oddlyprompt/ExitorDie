@@ -188,39 +188,76 @@ export class GameOverScene extends Phaser.Scene {
 
   async submitScore() {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://roguelike-phaser.preview.emergentagent.com';
       
       const scoreData = {
-        seed: gameState.seed,
+        seed: gameState.seed.toString(),
         version: gameState.contentPack.version,
         daily: gameState.isDailyRun,
-        score: gameState.score,
-        depth: gameState.depth,
-        artifacts: gameState.artifacts.length,
-        replayLog: gameState.replayLog
+        replayLog: gameState.replayLog,
+        items: gameState.artifacts.map(artifact => ({
+          hash: artifact.id || artifact.hash,
+          name: artifact.name,
+          rarity: artifact.rarity,
+          set: artifact.set || null,
+          effects: artifact.effects || [],
+          value: artifact.value,
+          lore: artifact.lore || ""
+        }))
       };
       
-      // This will be implemented when backend is ready
-      console.log('Score submission data:', scoreData);
+      console.log('Submitting score:', scoreData);
       
-      // Show submission feedback
-      const feedback = this.add.text(187.5, 650, 'Score submitted!', {
-        fontSize: '12px',
-        fill: '#4ecdc4',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      
-      this.tweens.add({
-        targets: feedback,
-        alpha: 0,
-        duration: 2000,
-        onComplete: () => feedback.destroy()
+      const response = await fetch(`${backendUrl}/api/score/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(scoreData)
       });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Score submitted successfully:', result);
+        
+        // Show submission success with placement
+        const feedback = this.add.text(187.5, 650, 
+          `Score submitted! Rank #${result.placement}`, {
+          fontSize: '12px',
+          fill: '#4ecdc4',
+          fontFamily: 'Courier New'
+        }).setOrigin(0.5);
+        
+        this.tweens.add({
+          targets: feedback,
+          alpha: 0,
+          duration: 3000,
+          onComplete: () => feedback.destroy()
+        });
+        
+      } else {
+        const error = await response.json();
+        console.error('Score submission failed:', error);
+        
+        const errorText = this.add.text(187.5, 650, 
+          `Submission failed: ${error.detail || 'Unknown error'}`, {
+          fontSize: '12px',
+          fill: '#ff6b6b',
+          fontFamily: 'Courier New'
+        }).setOrigin(0.5);
+        
+        this.tweens.add({
+          targets: errorText,
+          alpha: 0,
+          duration: 3000,
+          onComplete: () => errorText.destroy()
+        });
+      }
       
     } catch (error) {
       console.error('Score submission failed:', error);
       
-      const errorText = this.add.text(187.5, 650, 'Submission failed', {
+      const errorText = this.add.text(187.5, 650, 'Network error', {
         fontSize: '12px',
         fill: '#ff6b6b',
         fontFamily: 'Courier New'
