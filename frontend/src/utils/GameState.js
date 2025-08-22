@@ -4,6 +4,7 @@
  */
 import { EquipSystem } from './EquipSystem.js';
 import { ProceduralNameGenerator } from './ProceduralNames.js';
+import { runModifiers } from './RunModifiers.js';
 
 export class GameState {
   constructor() {
