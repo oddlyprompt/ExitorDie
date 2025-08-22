@@ -382,13 +382,29 @@ export class GameState {
   // Recalculate run modifiers from equipped items and consumables
   recalculateModifiers() {
     try {
-      const equippedArtifacts = this.equipSystem.getEquippedItems();
-      const consumables = this.inventory.filter(item => item.charges && item.charges > 0);
+      console.log('🔧 Starting recalculateModifiers...');
+      console.log('🔧 equipSystem:', this.equipSystem);
       
+      if (!this.equipSystem) {
+        console.warn('⚠️ equipSystem is null/undefined, initializing...');
+        this.equipSystem = new EquipSystem();
+      }
+      
+      console.log('🔧 Getting equipped items...');
+      const equippedArtifacts = this.equipSystem.getEquippedItems();
+      console.log('🔧 Equipped artifacts:', equippedArtifacts);
+      
+      console.log('🔧 Filtering consumables from inventory...');
+      console.log('🔧 Current inventory:', this.inventory);
+      const consumables = this.inventory ? this.inventory.filter(item => item && item.charges && item.charges > 0) : [];
+      console.log('🔧 Consumables found:', consumables);
+      
+      console.log('🔧 Calling runModifiers.calculateFromEquipment...');
       runModifiers.calculateFromEquipment(equippedArtifacts, consumables);
       console.log('🔧 Modifiers recalculated:', runModifiers.getSummary());
     } catch (error) {
       console.error('❌ Error in recalculateModifiers:', error);
+      console.error('❌ Error details:', error.message, error.stack);
       // Reset to safe state
       runModifiers.reset();
     }
