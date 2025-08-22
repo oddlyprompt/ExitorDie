@@ -255,29 +255,46 @@ export class RunScene extends Phaser.Scene {
   }
 
   generateRoom() {
-    gameState.visitRoom('standard');
-    
-    // Clear previous room
-    if (this.roomContainer) {
-      this.roomContainer.destroy();
+    console.log('🎯 generateRoom() called');
+    try {
+      console.log('🎯 Current gameState.depth:', gameState.depth);
+      gameState.visitRoom('standard');
+      console.log('🎯 visitRoom() called successfully');
+      
+      // Clear previous room
+      if (this.roomContainer) {
+        console.log('🎯 Destroying previous room container');
+        this.roomContainer.destroy();
+      }
+      
+      console.log('🎯 Creating new room container at position 187.5, 400');
+      this.roomContainer = this.add.container(187.5, 400);
+      
+      // Check if this is a milestone room
+      const isMilestone = gameState.isMilestoneRoom();
+      console.log('🎯 Is milestone room:', isMilestone);
+      
+      if (isMilestone) {
+        console.log('🎯 Creating milestone room...');
+        this.createMilestoneRoom();
+      } else {
+        console.log('🎯 Creating standard room...');
+        this.createStandardRoom();
+      }
+      
+      // Update HUD
+      console.log('🎯 Updating HUD...');
+      this.updateHUD();
+      
+      // Depth transition effect (dark flicker)
+      console.log('🎯 Adding camera flash effect...');
+      this.cameras.main.flash(150, 20, 20, 20, false);
+      
+      console.log('✅ generateRoom() completed successfully');
+    } catch (error) {
+      console.error('❌ Error in generateRoom():', error);
+      console.error('❌ Error stack:', error.stack);
     }
-    
-    this.roomContainer = this.add.container(187.5, 400);
-    
-    // Check if this is a milestone room
-    const isMilestone = gameState.isMilestoneRoom();
-    
-    if (isMilestone) {
-      this.createMilestoneRoom();
-    } else {
-      this.createStandardRoom();
-    }
-    
-    // Update HUD
-    this.updateHUD();
-    
-    // Depth transition effect (dark flicker)
-    this.cameras.main.flash(150, 20, 20, 20, false);
   }
 
   createMilestoneRoom() {
