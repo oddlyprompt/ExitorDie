@@ -10,16 +10,38 @@ export class ProceduralNameGenerator {
     // Ensure we have a valid contentPack object
     const validContentPack = contentPack || {};
     
+    console.log('🎯 Checking contentPack properties:', {
+      hasPrefixes: !!validContentPack.prefixes,
+      hasBases: !!validContentPack.bases,
+      hasSuffixes: !!validContentPack.suffixes,
+      hasGlyphs: !!validContentPack.glyphs
+    });
+    
     this.prefixes = validContentPack.prefixes || this.getDefaultPrefixes();
     this.bases = validContentPack.bases || this.getDefaultBases();
     this.suffixes = validContentPack.suffixes || this.getDefaultSuffixes();
     this.glyphs = validContentPack.glyphs || ["⟡", "†", "Ω", "∆"];
     
+    console.log('🎯 After assignment, checking arrays:', {
+      prefixesLength: this.prefixes?.length || 0,
+      basesLength: this.bases?.length || 0,
+      suffixesLength: this.suffixes?.length || 0,
+      glyphsLength: this.glyphs?.length || 0
+    });
+    
+    console.log('🎯 Sample prefix:', this.prefixes?.[0]);
+    console.log('🎯 Sample base:', this.bases?.[0]);
+    console.log('🎯 Sample suffix:', this.suffixes?.[0]);
+    
+    // Force call getDefaultPrefixes to test if methods work
+    const testPrefixes = this.getDefaultPrefixes();
+    console.log('🎯 Test getDefaultPrefixes result:', testPrefixes?.length || 0, testPrefixes?.[0]);
+    
     console.log('🎯 ProceduralNameGenerator initialized with:', {
-      prefixes: this.prefixes.length,
-      bases: this.bases.length,
-      suffixes: this.suffixes.length,
-      glyphs: this.glyphs.length
+      prefixes: this.prefixes?.length || 0,
+      bases: this.bases?.length || 0, 
+      suffixes: this.suffixes?.length || 0,
+      glyphs: this.glyphs?.length || 0
     });
   }
 
