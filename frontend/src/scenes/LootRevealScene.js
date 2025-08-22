@@ -206,6 +206,9 @@ export class LootRevealScene extends Phaser.Scene {
     this.isSpinning = false;
     this.itemsRevealed++;
     
+    // Play loot chime sound
+    audioSystem.playLootChime();
+    
     // Store the current item
     this.revealedItems.push(this.itemData);
     
