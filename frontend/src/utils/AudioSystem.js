@@ -85,12 +85,20 @@ export class AudioSystem {
 
   setMusicVolume(volume) {
     this.musicVolume = Math.max(0, Math.min(1, volume));
+    if (this.musicGain) {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.audioContext.currentTime);
+    }
     this.saveSettings();
+    console.log('🎵 Music volume set to:', this.musicVolume);
   }
 
   setSfxVolume(volume) {
     this.sfxVolume = Math.max(0, Math.min(1, volume));
+    if (this.sfxGain) {
+      this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.audioContext.currentTime);
+    }
     this.saveSettings();
+    console.log('🎵 SFX volume set to:', this.sfxVolume);
   }
 
   // Core sound generation method
