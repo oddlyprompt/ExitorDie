@@ -140,6 +140,7 @@ class ScoreSubmission(BaseModel):
     items: List[SubmittedItem]
 
 class Score(BaseModel):
+    username: Optional[str] = None
     seed: str
     version: str
     daily: bool
