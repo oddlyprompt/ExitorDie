@@ -75,6 +75,7 @@ class Artifact(BaseModel):
     rarity: str
     effects: List[ArtifactEffect]
     lore: str
+    lore_long: str = ""
 
 class Set(BaseModel):
     id: str
