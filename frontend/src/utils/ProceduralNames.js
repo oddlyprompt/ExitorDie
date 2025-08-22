@@ -171,6 +171,17 @@ export class ProceduralNameGenerator {
 
   // Weighted selection based on rarity tier
   selectWeightedByTier(items, rng, rarityTier) {
+    console.log('🎯 selectWeightedByTier called with:', { 
+      itemsLength: items?.length, 
+      rarityTier,
+      items: items?.slice(0, 3) // Show first 3 items for debugging
+    });
+    
+    if (!items || items.length === 0) {
+      console.error('❌ selectWeightedByTier: items array is empty or undefined');
+      return null;
+    }
+    
     // Calculate tier bias - higher rarity = prefer higher tierBias
     const tierPreference = Math.min(rarityTier / 3, 3); // 0-3 scale
     
@@ -180,15 +191,20 @@ export class ProceduralNameGenerator {
     }));
     
     const totalWeight = weightedItems.reduce((sum, item) => sum + item.weight, 0);
+    console.log('🎯 totalWeight:', totalWeight);
+    
     let random = rng.nextFloat(0, totalWeight);
+    console.log('🎯 random roll:', random);
     
     for (const item of weightedItems) {
       random -= item.weight;
       if (random <= 0) {
+        console.log('✅ Selected item:', item);
         return item;
       }
     }
     
+    console.log('✅ Fallback to first item:', weightedItems[0]);
     return weightedItems[0];
   }
 
