@@ -586,9 +586,9 @@ async def submit_score(request: Request, submission: ScoreSubmission):
         # Insert score
         await db.scores.insert_one(score_record.dict())
         
-        # Register OneOfOne items
+        # Register 1/1 items
         for item in simulation_result["items"]:
-            if item.rarity == "OneOfOne":
+            if item.rarity == "1/1":
                 item_record = Item(
                     hash=item.hash,
                     name=item.name,
