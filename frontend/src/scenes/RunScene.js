@@ -5,20 +5,33 @@ import { gameState } from '../utils/GameState.js';
 export class RunScene extends Phaser.Scene {
   constructor() {
     super({ key: 'RunScene' });
+    console.log('🎯 RunScene constructor called');
   }
 
   create() {
-    // Background
-    this.createBackground();
-    
-    // HUD - Fixed layout to prevent overlap
-    this.createHUD();
-    
-    // Generate first room
-    this.generateRoom();
-    
-    // Track screen shake camera
-    this.cameras.main.setBackgroundColor(0x1a1a1a);
+    console.log('🎯 RunScene create() method called');
+    try {
+      // Background
+      console.log('🎯 Creating background...');
+      this.createBackground();
+      
+      // HUD - Fixed layout to prevent overlap
+      console.log('🎯 Creating HUD...');
+      this.createHUD();
+      
+      // Generate first room
+      console.log('🎯 Generating first room...');
+      this.generateRoom();
+      
+      // Track screen shake camera
+      console.log('🎯 Setting camera background...');
+      this.cameras.main.setBackgroundColor(0x1a1a1a);
+      
+      console.log('✅ RunScene created successfully!');
+    } catch (error) {
+      console.error('❌ Error in RunScene create():', error);
+      console.error('❌ Error stack:', error.stack);
+    }
   }
 
   createBackground() {
