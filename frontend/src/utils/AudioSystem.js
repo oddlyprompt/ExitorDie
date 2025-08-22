@@ -10,6 +10,9 @@ export class AudioSystem {
     this.musicVolume = 0.7;
     this.sfxVolume = 0.7;
     this.isInitialized = false;
+    this.backgroundMusic = null;
+    this.musicGain = null;
+    this.sfxGain = null;
     
     console.log('🎵 AudioSystem created');
   }
@@ -25,13 +28,43 @@ export class AudioSystem {
       this.masterGain = this.audioContext.createGain();
       this.masterGain.connect(this.audioContext.destination);
       
+      // Create separate gain nodes for music and SFX
+      this.musicGain = this.audioContext.createGain();
+      this.sfxGain = this.audioContext.createGain();
+      
+      this.musicGain.connect(this.masterGain);
+      this.sfxGain.connect(this.masterGain);
+      
       // Load settings from localStorage
       this.loadSettings();
+      
+      // Load and start background music
+      await this.loadBackgroundMusic();
       
       this.isInitialized = true;
       console.log('✅ AudioSystem initialized');
     } catch (error) {
       console.warn('❌ AudioSystem initialization failed:', error);
+    }
+  }
+
+  async loadBackgroundMusic() {
+    try {
+      console.log('🎵 Loading background music...');
+      const response = await fetch('/exitordie.mp3');
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      
+      this.backgroundMusic = this.audioContext.createBufferSource();
+      this.backgroundMusic.buffer = audioBuffer;
+      this.backgroundMusic.loop = true;
+      this.backgroundMusic.connect(this.musicGain);
+      
+      // Start playing
+      this.backgroundMusic.start(0);
+      console.log('✅ Background music loaded and playing');
+    } catch (error) {
+      console.warn('❌ Failed to load background music:', error);
     }
   }
 
