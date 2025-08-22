@@ -214,7 +214,15 @@ export class GameOverScene extends Phaser.Scene {
       const safeReplayLog = Array.isArray(gameState.replayLog) ? gameState.replayLog : [];
       const safeInventory = Array.isArray(gameState.inventory) ? gameState.inventory : [];
       
-      console.log('🔧 Safe arrays created:', {
+      // CRITICAL FIX: Calculate final score before submission
+      const finalScore = gameState.calculateScore();
+      gameState.score = finalScore; // Store it in gameState for consistency
+      
+      console.log('🔧 Score calculation:', {
+        treasureValue: gameState.treasureValue,
+        depth: gameState.depth,
+        greed: gameState.greed,
+        finalScore: finalScore,
         replayLogLength: safeReplayLog.length,
         inventoryLength: safeInventory.length
       });
