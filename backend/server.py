@@ -542,12 +542,12 @@ async def submit_score(request: Request, submission: ScoreSubmission):
         if existing:
             raise HTTPException(status_code=400, detail="Score already submitted")
         
-        # Validate OneOfOne uniqueness
+        # Validate OneOfOne uniqueness -> 1/1 uniqueness
         for item in submission.items:
-            if item.rarity == "OneOfOne":
+            if item.rarity == "1/1":
                 existing_item = await db.items.find_one({"hash": item.hash})
                 if existing_item:
-                    raise HTTPException(status_code=400, detail=f"OneOfOne item {item.hash} already exists")
+                    raise HTTPException(status_code=400, detail=f"1/1 item {item.hash} already exists")
         
         # Re-simulate run for validation
         simulator = GameSimulator(content_pack, submission.seed)
