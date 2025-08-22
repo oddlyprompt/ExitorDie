@@ -11,7 +11,7 @@ export class RunScene extends Phaser.Scene {
     // Background
     this.createBackground();
     
-    // HUD
+    // HUD - Fixed layout to prevent overlap
     this.createHUD();
     
     // Generate first room
@@ -58,49 +58,58 @@ export class RunScene extends Phaser.Scene {
   }
 
   createHUD() {
-    // HUD container
+    // Fixed HUD layout to prevent overlap
     this.hud = this.add.container(0, 0);
     
-    // HP Hearts (now 4 max)
-    this.hpContainer = this.add.container(20, 30);
+    // Top row: HP, Depth, Seed, Stats
+    this.hpContainer = this.add.container(20, 20);
     this.updateHPDisplay();
     
-    // Greed Bar
-    this.greedContainer = this.add.container(20, 70);
-    this.createGreedBar();
-    
-    // Stats container (top right)
-    this.statsContainer = this.add.container(280, 30);
-    this.updateStats();
-    
-    // Depth indicator with seed display
     this.depthText = this.add.text(187.5, 20, `DEPTH: ${gameState.depth}`, {
-      fontSize: '16px',
+      fontSize: '14px',
       fill: '#cccccc',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
-    // Seed indicator (shows determinism)
-    this.seedText = this.add.text(187.5, 40, `🎲 ${gameState.getSeedDisplay()}`, {
-      fontSize: '12px',
+    this.seedText = this.add.text(187.5, 35, `🎲 ${gameState.getSeedDisplay()}`, {
+      fontSize: '11px',
       fill: '#888888',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
-    // Consumables display
-    this.consumablesContainer = this.add.container(20, 110);
+    this.statsContainer = this.add.container(320, 20);
+    this.updateStats();
+    
+    // Second row: Greed bar
+    this.greedContainer = this.add.container(20, 55);
+    this.createGreedBar();
+    
+    // Third row: Equipment slots
+    this.equipContainer = this.add.container(20, 85);
+    this.updateEquipmentDisplay();
+    
+    // Fourth row: Consumables
+    this.consumablesContainer = this.add.container(20, 115);
     this.updateConsumablesDisplay();
 
-    this.hud.add([this.hpContainer, this.greedContainer, this.statsContainer, this.depthText, this.seedText, this.consumablesContainer]);
+    this.hud.add([
+      this.hpContainer, 
+      this.depthText, 
+      this.seedText, 
+      this.statsContainer, 
+      this.greedContainer, 
+      this.equipContainer,
+      this.consumablesContainer
+    ]);
   }
 
   updateHPDisplay() {
     this.hpContainer.removeAll(true);
     
-    // Add HP hearts (max 4 now)
+    // Add HP hearts (max 4)
     for (let i = 0; i < gameState.maxHP; i++) {
-      const heart = this.add.text(i * 25, 0, i < gameState.hp ? '♥' : '♡', {
-        fontSize: '20px',
+      const heart = this.add.text(i * 20, 0, i < gameState.hp ? '♥' : '♡', {
+        fontSize: '18px',
         fill: i < gameState.hp ? '#ff6b6b' : '#666666',
         fontFamily: 'Courier New'
       });
@@ -119,14 +128,14 @@ export class RunScene extends Phaser.Scene {
     });
     
     // Greed bar background
-    const barBg = this.add.rectangle(60, 0, 100, 12, 0x333333);
+    const barBg = this.add.rectangle(55, 0, 90, 10, 0x333333);
     
     // Greed bar fill
-    const fillWidth = (gameState.greed / 10) * 100;
-    const barFill = this.add.rectangle(60 - (100 - fillWidth) / 2, 0, fillWidth, 12, 0xfeca57);
+    const fillWidth = (gameState.greed / 10) * 90;
+    const barFill = this.add.rectangle(55 - (90 - fillWidth) / 2, 0, fillWidth, 10, 0xfeca57);
     
     // Greed text
-    const greedText = this.add.text(170, 0, `${gameState.greed}/10`, {
+    const greedText = this.add.text(155, 0, `${gameState.greed}/10`, {
       fontSize: '12px',
       fill: '#feca57',
       fontFamily: 'Courier New'
@@ -135,10 +144,52 @@ export class RunScene extends Phaser.Scene {
     this.greedContainer.add([label, barBg, barFill, greedText]);
   }
 
+  updateEquipmentDisplay() {
+    this.equipContainer.removeAll(true);
+    
+    const equippedItems = gameState.equipSystem.getEquippedItems();
+    
+    if (equippedItems.length > 0 || gameState.equipSystem.bankedItems.length > 0) {
+      const label = this.add.text(0, 0, 'EQUIP:', {
+        fontSize: '12px',
+        fill: '#cccccc',
+        fontFamily: 'Courier New'
+      });
+      this.equipContainer.add(label);
+      
+      let xOffset = 50;
+      
+      // Show equipped items
+      for (let i = 0; i < 2; i++) {
+        const item = gameState.equipSystem.slots[i];
+        const slotText = this.add.text(xOffset, 0, item ? `E${i+1}:${item.name.substr(0, 8)}` : `E${i+1}:---`, {
+          fontSize: '10px',
+          fill: item ? this.getRarityColor(item.rarity) : '#666666',
+          fontFamily: 'Courier New'
+        });
+        this.equipContainer.add(slotText);
+        xOffset += 80;
+      }
+      
+      // Show banked count
+      if (gameState.equipSystem.bankedItems.length > 0) {
+        const bankedText = this.add.text(xOffset, 0, `BANK:${gameState.equipSystem.bankedItems.length}`, {
+          fontSize: '10px',
+          fill: '#feca57',
+          fontFamily: 'Courier New'
+        });
+        this.equipContainer.add(bankedText);
+      }
+    }
+  }
+
   updateConsumablesDisplay() {
     this.consumablesContainer.removeAll(true);
     
-    if (gameState.smokeBombs > 0 || gameState.fieldBandages > 0) {
+    const smokeBombs = gameState.getSmokeBombCount();
+    const bandages = gameState.getFieldBandageCount();
+    
+    if (smokeBombs > 0 || bandages > 0) {
       const label = this.add.text(0, 0, 'ITEMS:', {
         fontSize: '12px',
         fill: '#cccccc',
@@ -146,20 +197,20 @@ export class RunScene extends Phaser.Scene {
       });
       this.consumablesContainer.add(label);
       
-      let xOffset = 50;
+      let xOffset = 45;
       
-      if (gameState.smokeBombs > 0) {
-        const smokeText = this.add.text(xOffset, 0, `💨 ${gameState.smokeBombs}`, {
+      if (smokeBombs > 0) {
+        const smokeText = this.add.text(xOffset, 0, `💨${smokeBombs}`, {
           fontSize: '12px',
           fill: '#9ca3af',
           fontFamily: 'Courier New'
         });
         this.consumablesContainer.add(smokeText);
-        xOffset += 40;
+        xOffset += 35;
       }
       
-      if (gameState.fieldBandages > 0) {
-        const bandageText = this.add.text(xOffset, 0, `🩹 ${gameState.fieldBandages}`, {
+      if (bandages > 0) {
+        const bandageText = this.add.text(xOffset, 0, `🩹${bandages}`, {
           fontSize: '12px',
           fill: '#22c55e',
           fontFamily: 'Courier New'
@@ -175,14 +226,14 @@ export class RunScene extends Phaser.Scene {
     const exitOdds = gameState.getExitOdds();
     const deathRisk = gameState.getDeathRisk();
     
-    const exitText = this.add.text(0, 0, `EXIT: ${exitOdds}%`, {
-      fontSize: '12px',
+    const exitText = this.add.text(0, 0, `EXIT:${exitOdds}%`, {
+      fontSize: '11px',
       fill: exitOdds > 20 ? '#4ecdc4' : '#cccccc',
       fontFamily: 'Courier New'
     });
     
-    const riskText = this.add.text(0, 15, `RISK: ${deathRisk}%`, {
-      fontSize: '12px',
+    const riskText = this.add.text(0, 12, `RISK:${deathRisk}%`, {
+      fontSize: '11px',
       fill: deathRisk > 35 ? '#ff6b6b' : '#cccccc',
       fontFamily: 'Courier New'
     });
@@ -200,6 +251,52 @@ export class RunScene extends Phaser.Scene {
     
     this.roomContainer = this.add.container(187.5, 400);
     
+    // Check if this is a milestone room
+    const isMilestone = gameState.isMilestoneRoom();
+    
+    if (isMilestone) {
+      this.createMilestoneRoom();
+    } else {
+      this.createStandardRoom();
+    }
+    
+    // Update HUD
+    this.updateHUD();
+    
+    // Depth transition effect (dark flicker)
+    this.cameras.main.flash(150, 20, 20, 20, false);
+  }
+
+  createMilestoneRoom() {
+    // Milestone banner
+    const banner = this.add.container(0, -150);
+    const bannerBg = this.add.rectangle(0, 0, 280, 40, 0xfeca57, 0.9);
+    bannerBg.setStrokeStyle(3, 0xffd700);
+    const bannerText = this.add.text(0, 0, `✦ MILESTONE ROOM ${gameState.depth} ✦`, {
+      fontSize: '16px',
+      fill: '#000000',
+      fontFamily: 'Courier New',
+      fontWeight: 'bold'
+    }).setOrigin(0.5);
+    banner.add([bannerBg, bannerText]);
+    this.roomContainer.add(banner);
+
+    // Flavor text
+    const flavorText = gameState.getFlavorText(gameRNG);
+    const descText = this.add.text(0, -90, flavorText, {
+      fontSize: '14px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New',
+      align: 'center',
+      wordWrap: { width: 300 }
+    }).setOrigin(0.5);
+    this.roomContainer.add(descText);
+
+    // Milestone choices
+    this.createMilestoneChoices();
+  }
+
+  createStandardRoom() {
     // Procedural flavor text
     const flavorText = gameState.getFlavorText(gameRNG);
     const descText = this.add.text(0, -120, flavorText, {
@@ -217,27 +314,53 @@ export class RunScene extends Phaser.Scene {
     this.createRoomChoices(modifier);
     
     this.roomContainer.add(descText);
-    
-    // Update HUD
-    this.updateHUD();
-    
-    // Depth transition effect (dark flicker)
-    this.cameras.main.flash(150, 20, 20, 20, false);
   }
 
-  generateRoomModifier() {
-    const budget = gameState.getHazardBudget();
-    const modifiers = [
-      { type: 'trap', cost: 1.5, name: 'Spiked Floor', effect: 'Take 1 damage, but better loot awaits', color: '#ff6b6b' },
-      { type: 'shrine', cost: 1, name: 'Healing Shrine', effect: 'Trade 2 Greed for 1 HP', color: '#4ecdc4' },
-      { type: 'curse', cost: 2, name: 'Cursed Altar', effect: 'Higher rarity loot, but +5% death risk', color: '#8b5cf6' },
-      { type: 'beacon', cost: 3, name: 'Exit Beacon', effect: 'Guarantees exit option next room', color: '#feca57' },
-      { type: 'treasure', cost: 1.5, name: 'Treasure Pile', effect: 'Take for gold and +1 Greed', color: '#45b7d1' }
-    ];
-    
-    // Filter modifiers by budget and select randomly
-    const affordableModifiers = modifiers.filter(m => m.cost <= budget);
-    return affordableModifiers.length > 0 ? gameRNG.choice(affordableModifiers) : null;
+  createMilestoneChoices() {
+    const choices = [];
+
+    // Always have Continue option (guarantees boosted loot)
+    choices.push({
+      text: 'CONTINUE',
+      action: () => this.milestoneContinue(),
+      color: '#4ecdc4',
+      description: 'Guaranteed boosted loot drop'
+    });
+
+    // Exit option based on exit odds
+    const exitOdds = gameState.getExitOdds();
+    if (gameRNG.next() * 100 < exitOdds || gameState.guaranteedExit) {
+      choices.push({
+        text: 'EXIT (Safe)',
+        action: () => this.exitChoice(),
+        color: '#4ecdc4',
+        description: 'Leave safely with current loot'
+      });
+    }
+
+    // Gauntlet option - risk for double reward
+    choices.push({
+      text: 'GAUNTLET',
+      action: () => this.gauntletChoice(),
+      color: '#ff6b6b',
+      description: 'Take 1 damage → Double boosted loot'
+    });
+
+    // Altar option - consume greed for benefits
+    if (gameState.greed >= 2) {
+      choices.push({
+        text: 'ALTAR',
+        action: () => this.altarChoice(),
+        color: '#8b5cf6',
+        description: 'Trade 2 Greed → Heal +1 & +10% exit odds'
+      });
+    }
+
+    // Add consumable options
+    this.addConsumableChoices(choices);
+
+    // Create choice buttons
+    this.layoutChoiceButtons(choices);
   }
 
   createRoomChoices(modifier) {
@@ -252,7 +375,7 @@ export class RunScene extends Phaser.Scene {
     
     // Exit option based on exit odds
     const exitOdds = gameState.getExitOdds();
-    if (gameRNG.next() * 100 < exitOdds) {
+    if (gameRNG.next() * 100 < exitOdds || gameState.guaranteedExit) {
       choices.push({
         text: 'EXIT (Safe)',
         action: () => this.exitChoice(),
@@ -270,9 +393,17 @@ export class RunScene extends Phaser.Scene {
         description: modifier.effect
       });
     }
+
+    // Add consumable options
+    this.addConsumableChoices(choices);
     
+    // Create choice buttons
+    this.layoutChoiceButtons(choices);
+  }
+
+  addConsumableChoices(choices) {
     // Add consumable actions if available
-    if (gameState.smokeBombs > 0) {
+    if (gameState.getSmokeBombCount() > 0) {
       choices.push({
         text: 'USE SMOKE BOMB',
         action: () => this.useSmokeBomb(),
@@ -281,7 +412,7 @@ export class RunScene extends Phaser.Scene {
       });
     }
     
-    if (gameState.fieldBandages > 0 && gameState.hp < gameState.maxHP) {
+    if (gameState.getFieldBandageCount() > 0 && gameState.hp < gameState.maxHP) {
       choices.push({
         text: 'USE FIELD BANDAGE',
         action: () => this.useFieldBandage(),
@@ -289,8 +420,10 @@ export class RunScene extends Phaser.Scene {
         description: '+1 HP (if not at max)'
       });
     }
-    
-    // Create choice buttons
+  }
+
+  layoutChoiceButtons(choices) {
+    // Smart button layout
     const buttonsPerRow = 2;
     const buttonWidth = 160;
     const buttonHeight = 50;
@@ -314,6 +447,21 @@ export class RunScene extends Phaser.Scene {
         buttonHeight
       );
     });
+  }
+
+  generateRoomModifier() {
+    const budget = gameState.getHazardBudget();
+    const modifiers = [
+      { type: 'trap', cost: 1.5, name: 'Spiked Floor', effect: 'Take 1 damage, but better loot awaits', color: '#ff6b6b' },
+      { type: 'shrine', cost: 1, name: 'Healing Shrine', effect: 'Trade 2 Greed for 1 HP', color: '#4ecdc4' },
+      { type: 'curse', cost: 2, name: 'Cursed Altar', effect: 'Higher rarity loot, but +5% death risk', color: '#8b5cf6' },
+      { type: 'beacon', cost: 3, name: 'Exit Beacon', effect: 'Guarantees exit option next room', color: '#feca57' },
+      { type: 'treasure', cost: 1.5, name: 'Treasure Pile', effect: 'Take for gold and +1 Greed', color: '#45b7d1' }
+    ];
+    
+    // Filter modifiers by budget and select randomly
+    const affordableModifiers = modifiers.filter(m => m.cost <= budget);
+    return affordableModifiers.length > 0 ? gameRNG.choice(affordableModifiers) : null;
   }
 
   createChoiceButton(x, y, text, action, color = '#ffffff', description = null, width = 160, height = 50) {
@@ -367,14 +515,48 @@ export class RunScene extends Phaser.Scene {
     this.roomContainer.add(button);
   }
 
+  // Milestone room actions
+  milestoneContinue() {
+    gameState.increaseGreed(1);
+    gameState.roomsSinceLoot = 0; // Reset since guaranteed loot
+    
+    // Guaranteed boosted loot
+    this.triggerLootReveal(true); // true = milestone boost
+  }
+
+  gauntletChoice() {
+    // Take guaranteed damage
+    this.cameras.main.shake(300, 0.03);
+    if (gameState.takeDamage(1)) {
+      this.triggerDeath();
+      return;
+    }
+    
+    gameState.roomsSinceLoot = 0;
+    
+    // Double boosted loot (two spins)
+    this.triggerLootReveal(true, true); // milestone boost + double
+  }
+
+  altarChoice() {
+    gameState.decreaseGreed(2);
+    gameState.heal(1);
+    gameState.altarBonus = 10; // +10% exit odds next room
+    
+    this.showHealEffect();
+    
+    // Continue to next room
+    this.generateRoom();
+  }
+
+  // Standard room actions
   continueChoice() {
     gameState.increaseGreed(1);
     gameState.roomsSinceLoot++;
     gameState.safeRoomStreak++;
     
-    // Death risk check
-    const deathRisk = gameState.getDeathRisk();
-    if (gameRNG.next() * 100 < deathRisk) {
+    // Fair death check
+    if (gameState.checkDeath(gameRNG)) {
       this.triggerDeath();
       return;
     }
@@ -422,7 +604,7 @@ export class RunScene extends Phaser.Scene {
         
       case 'beacon':
         // Set flag for guaranteed exit next room
-        this.guaranteedExit = true;
+        gameState.guaranteedExit = true;
         break;
         
       case 'treasure':
@@ -472,8 +654,7 @@ export class RunScene extends Phaser.Scene {
     
     // Pity system (updated to 2 rooms, 6% bonus)
     if (gameState.shouldActivatePity()) {
-      const bonusMultiplier = gameState.contentPack.curves?.pitySystem?.bonusMultiplier || 
-                             gameState.contentPack.pity?.bonus_next || 6;
+      const bonusMultiplier = gameState.contentPack.pity?.bonus_next || 6;
       lootChance += bonusMultiplier / 100;
     }
     
@@ -489,6 +670,11 @@ export class RunScene extends Phaser.Scene {
       this.curseActive = false;
     }
     
+    // Equipment loot bonus
+    if (gameState.lootBonus) {
+      lootChance += gameState.lootBonus / 100;
+    }
+    
     if (gameRNG.next() < lootChance) {
       gameState.roomsSinceLoot = 0;
       return true;
@@ -497,23 +683,48 @@ export class RunScene extends Phaser.Scene {
     return false;
   }
 
-  triggerLootReveal() {
+  triggerLootReveal(milestoneBoost = false, doubleReward = false) {
     // Pre-roll rarity and generate item data BEFORE going to LootReveal
-    const rolledRarity = this.rollLootRarity();
-    const itemData = this.generateLootItem(rolledRarity);
+    const rolledRarity = this.rollLootRarity(milestoneBoost);
+    
+    // Generate procedural item instead of fixed artifacts
+    const itemData = gameState.generateProceduralItem(gameRNG, rolledRarity.name);
     
     // Pass the pre-rolled data to LootReveal scene
     this.scene.start('LootRevealScene', {
       rolledRarity: rolledRarity,
-      itemData: itemData
+      itemData: itemData,
+      doubleReward: doubleReward
     });
   }
 
-  rollLootRarity() {
-    const rarities = gameState.contentPack.rarities;
+  rollLootRarity(milestoneBoost = false) {
+    const rarities = gameState.contentPack.rarities || gameState.contentPack.rarity_weights;
+    
+    // Convert to array format if needed
+    let rarityArray = rarities;
+    if (!Array.isArray(rarities)) {
+      rarityArray = Object.entries(rarities).map(([name, weight]) => {
+        const colorMap = {
+          'Common': '#9ca3af', 'Uncommon': '#22c55e', 'Rare': '#3b82f6', 'Epic': '#8b5cf6',
+          'Mythic': '#f59e0b', 'Ancient': '#ef4444', 'Relic': '#ec4899', 'Legendary': '#06b6d4',
+          'Transcendent': '#eab308', '1/1': '#dc2626'
+        };
+        return { name, weight, color: colorMap[name] || '#cccccc' };
+      });
+    }
+    
+    // Apply milestone boost (+1 rarity step)
+    let adjustedRarities = [...rarityArray];
+    if (milestoneBoost) {
+      // Shift weights toward higher rarities
+      adjustedRarities = adjustedRarities.map((r, index) => ({
+        ...r,
+        weight: index < 3 ? r.weight * 0.6 : r.weight * 1.4
+      }));
+    }
     
     // Apply pity system bonus
-    let adjustedRarities = [...rarities];
     if (gameState.shouldActivatePity()) {
       adjustedRarities = adjustedRarities.map(r => ({
         ...r,
@@ -543,63 +754,13 @@ export class RunScene extends Phaser.Scene {
     return adjustedRarities[0]; // fallback
   }
 
-  generateLootItem(rarity) {
-    const itemTypes = ['treasure', 'artifact'];
-    const type = gameRNG.choice(itemTypes);
-    
-    if (type === 'treasure') {
-      return {
-        type: 'treasure',
-        name: `${rarity.name} Treasure`,
-        rarity: rarity.name,
-        value: this.calculateTreasureValue(rarity),
-        lore: 'Valuable treasure from the depths.'
-      };
-    } else {
-      // Get available artifacts of this rarity
-      const availableArtifacts = gameState.contentPack.artifacts.filter(a => a.rarity === rarity.name);
-      const baseArtifact = availableArtifacts.length > 0 ? gameRNG.choice(availableArtifacts) : null;
-      
-      // Generate hash (deterministic)
-      const hash_data = `${gameState.contentPack.version}:${gameState.depth}:${gameRNG.state}:${rarity.name}`;
-      const itemHash = this.simpleHash(hash_data);
-      
-      return {
-        type: 'artifact',
-        id: baseArtifact ? baseArtifact.id : itemHash,
-        hash: itemHash,
-        name: baseArtifact ? baseArtifact.name : `${rarity.name} Artifact`,
-        rarity: rarity.name,
-        effect: baseArtifact ? baseArtifact.effect : 'unknown',
-        value: this.calculateArtifactValue(rarity),
-        lore: baseArtifact ? baseArtifact.lore : 'A mysterious artifact with unknown powers.',
-        cursed: gameRNG.next() < 0.1 // 10% chance of curse
-      };
-    }
-  }
-
-  simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16).substr(0, 8);
-  }
-
-  calculateTreasureValue(rarity) {
-    const baseValues = {
-      'Common': 50, 'Uncommon': 100, 'Rare': 200, 'Epic': 500, 'Mythic': 1000,
-      'Ancient': 2000, 'Relic': 4000, 'Legendary': 8000, 'Transcendent': 15000, '1/1': 30000
+  getRarityColor(rarity) {
+    const colors = {
+      'Common': '#9ca3af', 'Uncommon': '#22c55e', 'Rare': '#3b82f6', 'Epic': '#8b5cf6',
+      'Mythic': '#f59e0b', 'Ancient': '#ef4444', 'Relic': '#ec4899', 'Legendary': '#06b6d4',
+      'Transcendent': '#eab308', '1/1': '#dc2626'
     };
-    
-    const baseValue = baseValues[rarity.name] || 50;
-    return baseValue + gameRNG.nextInt(-baseValue * 0.2, baseValue * 0.2);
-  }
-
-  calculateArtifactValue(rarity) {
-    return Math.floor(this.calculateTreasureValue(rarity) * 1.5);
+    return colors[rarity] || '#cccccc';
   }
 
   triggerDeath() {
@@ -631,7 +792,7 @@ export class RunScene extends Phaser.Scene {
 
   showHealEffect() {
     // Green pulse effect around HP
-    const healEffect = this.add.circle(20 + (gameState.maxHP * 25) / 2, 30, 60, 0x4ecdc4, 0.4);
+    const healEffect = this.add.circle(20 + (gameState.maxHP * 20) / 2, 20, 50, 0x4ecdc4, 0.5);
     
     this.tweens.add({
       targets: healEffect,
@@ -670,6 +831,7 @@ export class RunScene extends Phaser.Scene {
     this.updateHPDisplay();
     this.createGreedBar();
     this.updateStats();
+    this.updateEquipmentDisplay();
     this.updateConsumablesDisplay();
     this.depthText.setText(`DEPTH: ${gameState.depth}`);
   }
