@@ -387,11 +387,26 @@ async def get_active_content_pack() -> ContentPack:
     """Get the active content pack"""
     pack_data = await db.content_packs.find_one({"active": True})
     if not pack_data:
-        # Create default content pack
+        # Create updated content pack v1.0.2
         default_pack = ContentPack()
+        default_pack.version = "1.0.2"
+        default_pack.rarity_weights = {
+            "Common": 40, "Uncommon": 22, "Rare": 12, "Epic": 8,
+            "Mythic": 6, "Ancient": 4, "Relic": 3, "Legendary": 2,
+            "Transcendent": 1.5, "1/1": 1.5
+        }
+        default_pack.value_multipliers = {
+            "Common": 1, "Uncommon": 1.2, "Rare": 1.5, "Epic": 2, "Mythic": 2.5,
+            "Ancient": 3, "Relic": 3.5, "Legendary": 4, "Transcendent": 5, "1/1": 6
+        }
+        default_pack.hazard_curve = {"base": 1.5, "per_depth": 0.45, "per_greed": 0.7, "cap": 55}
+        default_pack.exit_curve = {"base": 4, "per_depth": 0.7, "per_greed": 0.4, "cap": 35}
+        default_pack.pity = {"no_drop_streak": 2, "bonus_next": 6}
+        default_pack.streak_chest = {"interval": 3, "rarity_boost_multiplier": 1.5}
+        
         default_pack.artifacts = [
             Artifact(
-                id="phoenix_feather",
+                id="phoenix",
                 name="Phoenix Feather",
                 rarity="Legendary",
                 effects=[ArtifactEffect(id="on_death_revive", v=1)],
@@ -400,16 +415,39 @@ async def get_active_content_pack() -> ContentPack:
             Artifact(
                 id="lucky_coin",
                 name="Lucky Coin",
-                rarity="Uncommon",
-                effects=[ArtifactEffect(id="loot_chance", v=10)],
-                lore="A tarnished coin that brings unexpected fortune."
+                rarity="Epic",
+                effects=[ArtifactEffect(id="exit_plus", v=5)],
+                lore="Fortune favors the bold."
             ),
             Artifact(
-                id="iron_will",
-                name="Iron Will",
+                id="smoke_bomb",
+                name="Smoke Bomb",
                 rarity="Rare",
-                effects=[ArtifactEffect(id="greed_resist", v=1)],
-                lore="Strengthens resolve against temptation."
+                effects=[ArtifactEffect(id="skip_room", v=1)],
+                lore="A brief vanishing act."
+            ),
+            Artifact(
+                id="bandage",
+                name="Field Bandage",
+                rarity="Uncommon",
+                effects=[ArtifactEffect(id="heal_charges", v=1)],
+                lore="A strip of hope."
+            ),
+            Artifact(
+                id="cursed_chalice",
+                name="Cursed Chalice",
+                rarity="Mythic",
+                effects=[ArtifactEffect(id="risk_plus_pct", v=5), ArtifactEffect(id="loot_chance_plus_pct", v=20)],
+                lore="Sweet poison of ambition."
+            )
+        ]
+        
+        default_pack.sets = [
+            Set(
+                id="shadow_idols",
+                name="Idols of Shadow",
+                pieces=["idol_a", "idol_b", "idol_c"],
+                bonus=[ArtifactEffect(id="rarity_step_plus", v=1)]
             )
         ]
         
