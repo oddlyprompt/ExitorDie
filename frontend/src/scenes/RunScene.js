@@ -581,6 +581,9 @@ export class RunScene extends Phaser.Scene {
       return;
     }
     
+    // Play trap thud sound for damage
+    audioSystem.playTrapThud();
+    
     console.log('🎯 Gauntlet damage taken, HP now:', gameState.hp);
     gameState.roomsSinceLoot = 0;
     
