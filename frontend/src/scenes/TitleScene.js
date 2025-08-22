@@ -9,6 +9,13 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
+    // Initialize audio system on first user interaction
+    this.input.once('pointerdown', async () => {
+      console.log('🎵 Initializing audio system...');
+      await audioSystem.initialize();
+      audioSystem.resume();
+    });
+
     // Background gradient effect
     const gradient = this.add.graphics();
     gradient.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x2d1b69, 0x2d1b69, 1);
