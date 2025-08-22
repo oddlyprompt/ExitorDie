@@ -247,10 +247,13 @@ def main():
     leaderboard_ok = tester.test_get_leaderboard()
     daily_leaderboard_ok = tester.test_get_daily_leaderboard()
     
-    # 5. Score submission (requires content pack and daily seed)
+    # 5. Custom seed endpoint
+    custom_seed_ok = tester.test_custom_seed_endpoint()
+    
+    # 6. Score submission (requires content pack and daily seed)
     score_ok = tester.test_score_submission()
     
-    # 6. Admin endpoints (should fail without auth)
+    # 7. Admin endpoints (should fail without auth)
     admin_ok = tester.test_admin_content_update()
     
     # Print results
