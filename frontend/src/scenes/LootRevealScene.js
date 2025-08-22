@@ -186,6 +186,9 @@ export class LootRevealScene extends Phaser.Scene {
       delay: tickInterval,
       repeat: 29,
       callback: () => {
+        // Play wheel tick sound
+        audioSystem.playWheelTick();
+        
         // Small flash effect during spin
         const flash = this.add.circle(187.5, 300, 3, 0xffffff, 0.6);
         this.tweens.add({
