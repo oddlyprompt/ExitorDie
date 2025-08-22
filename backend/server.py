@@ -281,7 +281,7 @@ class GameSimulator:
         # Generate item
         base_value = {
             "Common": 50, "Uncommon": 100, "Rare": 200, "Epic": 500, "Mythic": 1000,
-            "Ancient": 2000, "Relic": 4000, "Legendary": 8000, "Transcendent": 15000, "OneOfOne": 30000
+            "Ancient": 2000, "Relic": 4000, "Legendary": 8000, "Transcendent": 15000, "1/1": 30000
         }.get(rarity, 50)
         
         value = int(base_value * self.content.value_multipliers.get(rarity, 1))
