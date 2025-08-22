@@ -34,6 +34,9 @@ export class GameState {
     this.riskAccumulator = 0; // Death risk bucket system
     this.safeRoomsRemaining = 2; // Rooms 1-2 are safe
     
+    // Initialize replay log as empty array
+    this.replayLog = [];
+    
     // Milestone system
     this.nextMilestone = 5;
     this.guaranteedExit = false;
