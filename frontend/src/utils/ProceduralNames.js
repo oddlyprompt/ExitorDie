@@ -5,43 +5,53 @@
 
 export class ProceduralNameGenerator {
   constructor(contentPack) {
-    console.log('🎯 ProceduralNameGenerator constructor, contentPack:', contentPack);
+    console.log('🎯 ProceduralNameGenerator constructor called');
     
-    // Ensure we have a valid contentPack object
-    const validContentPack = contentPack || {};
+    // FORCE initialize with defaults first, then override with contentPack if available
+    this.prefixes = this.getDefaultPrefixes();
+    this.bases = this.getDefaultBases();  
+    this.suffixes = this.getDefaultSuffixes();
+    this.glyphs = ["⟡", "†", "Ω", "∆"];
     
-    console.log('🎯 Checking contentPack properties:', {
-      hasPrefixes: !!validContentPack.prefixes,
-      hasBases: !!validContentPack.bases,
-      hasSuffixes: !!validContentPack.suffixes,
-      hasGlyphs: !!validContentPack.glyphs
-    });
-    
-    this.prefixes = validContentPack.prefixes || this.getDefaultPrefixes();
-    this.bases = validContentPack.bases || this.getDefaultBases();
-    this.suffixes = validContentPack.suffixes || this.getDefaultSuffixes();
-    this.glyphs = validContentPack.glyphs || ["⟡", "†", "Ω", "∆"];
-    
-    console.log('🎯 After assignment, checking arrays:', {
-      prefixesLength: this.prefixes?.length || 0,
-      basesLength: this.bases?.length || 0,
-      suffixesLength: this.suffixes?.length || 0,
-      glyphsLength: this.glyphs?.length || 0
-    });
-    
-    console.log('🎯 Sample prefix:', this.prefixes?.[0]);
-    console.log('🎯 Sample base:', this.bases?.[0]);
-    console.log('🎯 Sample suffix:', this.suffixes?.[0]);
-    
-    // Force call getDefaultPrefixes to test if methods work
-    const testPrefixes = this.getDefaultPrefixes();
-    console.log('🎯 Test getDefaultPrefixes result:', testPrefixes?.length || 0, testPrefixes?.[0]);
-    
-    console.log('🎯 ProceduralNameGenerator initialized with:', {
+    console.log('🎯 After setting defaults:', {
       prefixes: this.prefixes?.length || 0,
-      bases: this.bases?.length || 0, 
+      bases: this.bases?.length || 0,
+      suffixes: this.suffixes?.length || 0
+    });
+    
+    // Override with contentPack data if available
+    if (contentPack) {
+      if (contentPack.prefixes) this.prefixes = contentPack.prefixes;
+      if (contentPack.bases) this.bases = contentPack.bases;
+      if (contentPack.suffixes) this.suffixes = contentPack.suffixes;
+      if (contentPack.glyphs) this.glyphs = contentPack.glyphs;
+    }
+    
+    console.log('🎯 Final arrays:', {
+      prefixes: this.prefixes?.length || 0,
+      bases: this.bases?.length || 0,
       suffixes: this.suffixes?.length || 0,
       glyphs: this.glyphs?.length || 0
+    });
+    
+    // SAFETY CHECK - if any array is still empty, force defaults
+    if (!this.prefixes || this.prefixes.length === 0) {
+      console.log('🔧 FORCING default prefixes');
+      this.prefixes = this.getDefaultPrefixes();
+    }
+    if (!this.bases || this.bases.length === 0) {
+      console.log('🔧 FORCING default bases');
+      this.bases = this.getDefaultBases();
+    }
+    if (!this.suffixes || this.suffixes.length === 0) {
+      console.log('🔧 FORCING default suffixes');
+      this.suffixes = this.getDefaultSuffixes();
+    }
+    
+    console.log('🎯 ProceduralNameGenerator ready with arrays:', {
+      prefixes: this.prefixes?.length || 0,
+      bases: this.bases?.length || 0,
+      suffixes: this.suffixes?.length || 0
     });
   }
 
