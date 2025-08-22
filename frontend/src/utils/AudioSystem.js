@@ -111,11 +111,11 @@ export class AudioSystem {
     oscillator.type = type;
     oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
     
-    gainNode.gain.setValueAtTime(volume * this.sfxVolume, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
     
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(this.sfxGain);
     
     oscillator.start(this.audioContext.currentTime);
     oscillator.stop(this.audioContext.currentTime + duration);
@@ -145,12 +145,12 @@ export class AudioSystem {
     filter.frequency.setValueAtTime(filterFreq, this.audioContext.currentTime);
     filter.frequency.exponentialRampToValueAtTime(200, this.audioContext.currentTime + duration);
     
-    gainNode.gain.setValueAtTime(volume * this.sfxVolume * 0.3, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(volume * 0.3, this.audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
     
     source.connect(filter);
     filter.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(this.sfxGain);
     
     source.start(this.audioContext.currentTime);
     
