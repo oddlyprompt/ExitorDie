@@ -748,10 +748,14 @@ export class RunScene extends Phaser.Scene {
       console.log('🎯 Equipment loot bonus activated, new chance:', lootChance);
     }
     
-    const roll = gameRNG.next();
-    console.log('🎯 Loot roll:', roll, 'vs chance:', lootChance);
+    // Apply RunModifiers loot chance bonus
+    const finalLootChance = runModifiers.calculateFinalLootChance(lootChance);
+    console.log('🎯 Final loot chance after modifiers:', finalLootChance);
     
-    if (roll < lootChance) {
+    const roll = gameRNG.next();
+    console.log('🎯 Loot roll:', roll, 'vs chance:', finalLootChance);
+    
+    if (roll < finalLootChance) {
       gameState.roomsSinceLoot = 0;
       console.log('✅ LOOT GRANTED!');
       return true;
