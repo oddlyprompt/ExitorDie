@@ -194,19 +194,29 @@ export class TitleScene extends Phaser.Scene {
   }
 
   startNewRun() {
-    gameState.reset();
-    gameState.isDailyRun = false;
-    
-    // Use custom seed if provided, otherwise generate new
-    if (gameState.seedString) {
-      setSeed(gameState.seed);
-    } else {
-      const seed = Date.now() + gameRNG.nextInt(0, 999999);
-      setSeed(seed);
-      gameState.seed = seed;
+    console.log('🎯 NEW RUN button clicked - starting new run');
+    try {
+      gameState.reset();
+      gameState.isDailyRun = false;
+      
+      // Use custom seed if provided, otherwise generate new
+      if (gameState.seedString) {
+        console.log('🎯 Using custom seed:', gameState.seed);
+        setSeed(gameState.seed);
+      } else {
+        console.log('🎯 Generating new seed...');
+        const seed = Date.now() + gameRNG.nextInt(0, 999999);
+        console.log('🎯 Generated seed:', seed);
+        setSeed(seed);
+        gameState.seed = seed;
+      }
+      
+      console.log('🎯 Transitioning to RunScene...');
+      this.scene.start('RunScene');
+      console.log('🎯 Scene.start called successfully');
+    } catch (error) {
+      console.error('❌ Error in startNewRun:', error);
     }
-    
-    this.scene.start('RunScene');
   }
 
   startDailyRun() {
