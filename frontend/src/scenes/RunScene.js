@@ -274,6 +274,9 @@ export class RunScene extends Phaser.Scene {
       gameState.visitRoom('standard');
       console.log('🎯 visitRoom() called successfully');
       
+      // Recalculate modifiers from equipment at start of each room
+      gameState.recalculateModifiers();
+      
       // Clear previous room
       if (this.roomContainer) {
         console.log('🎯 Destroying previous room container');
