@@ -170,17 +170,38 @@ export class RunModifiers {
 
   // Calculate final risk percentage (used by RunScene)
   calculateFinalRisk(baseRisk) {
-    return Math.max(0, Math.min(95, (baseRisk + this.risk_pct_add) * this.risk_pct_mult));
+    try {
+      const result = Math.max(0, Math.min(95, (baseRisk + this.risk_pct_add) * this.risk_pct_mult));
+      console.log('🔧 Risk calculation:', { baseRisk, add: this.risk_pct_add, mult: this.risk_pct_mult, result });
+      return result;
+    } catch (error) {
+      console.error('❌ Error in calculateFinalRisk:', error);
+      return baseRisk; // Return safe fallback
+    }
   }
 
   // Calculate final exit percentage (used by RunScene)  
   calculateFinalExit(baseExit) {
-    return Math.max(0, Math.min(95, (baseExit + this.exit_pct_add) * this.exit_pct_mult));
+    try {
+      const result = Math.max(0, Math.min(95, (baseExit + this.exit_pct_add) * this.exit_pct_mult));
+      console.log('🔧 Exit calculation:', { baseExit, add: this.exit_pct_add, mult: this.exit_pct_mult, result });
+      return result;
+    } catch (error) {
+      console.error('❌ Error in calculateFinalExit:', error);
+      return baseExit; // Return safe fallback
+    }
   }
 
   // Calculate final loot chance (used by RunScene)
   calculateFinalLootChance(baseLootChance) {
-    return Math.max(0, Math.min(1.0, baseLootChance + (this.loot_chance_add / 100)));
+    try {
+      const result = Math.max(0, Math.min(1.0, baseLootChance + (this.loot_chance_add / 100)));
+      console.log('🔧 Loot chance calculation:', { baseLootChance, add: this.loot_chance_add, result });
+      return result;
+    } catch (error) {
+      console.error('❌ Error in calculateFinalLootChance:', error);
+      return baseLootChance; // Return safe fallback
+    }
   }
 
   // Use a revive charge (returns true if consumed)
