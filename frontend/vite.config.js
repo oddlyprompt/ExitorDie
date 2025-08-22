@@ -1,19 +1,16 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: './',
+  base: './', // needed so the dist/ zip works on itch.io
   server: {
-    port: 3000,
-    host: '0.0.0.0',
-    hmr: {
-      port: 3000
-    },
-    allowedHosts: 'all'
+    host: true,        // listen on all interfaces
+    allowedHosts: true // allow any host in dev (incl. *.preview.emergentagent.com)
   },
   preview: {
+    host: true,
     port: 3000,
-    host: '0.0.0.0',
-    allowedHosts: 'all'
+    allowedHosts: true // critical for Emergent preview host
   },
   build: {
     outDir: 'dist',
@@ -21,25 +18,8 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          phaser: ['phaser']
-        }
+        manualChunks: { phaser: ['phaser'] }
       }
     }
-  }
-})
-// vite.config.ts
-import { defineConfig } from 'vite'
-
-export default defineConfig({
-  base: './', // so itch.io build works
-  server: {
-    host: true,                // listen on all addresses
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      '.preview.emergentagent.com', // allow all Emergent preview hosts
-'roguelike-phaser.preview.emergentagent.com',
-    ]
   }
 })
