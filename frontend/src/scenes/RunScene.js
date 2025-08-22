@@ -592,6 +592,14 @@ export class RunScene extends Phaser.Scene {
   // Milestone room actions
   milestoneContinue() {
     console.log('🎯 Milestone CONTINUE clicked');
+    
+    // Log the action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'milestone_continue',
+      details: 'Chose continue at milestone'
+    });
+    
     gameState.increaseGreed(1);
     gameState.roomsSinceLoot = 0; // Reset since guaranteed loot
     
@@ -605,6 +613,14 @@ export class RunScene extends Phaser.Scene {
 
   gauntletChoice() {
     console.log('🎯 Milestone GAUNTLET clicked');
+    
+    // Log the action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'milestone_gauntlet',
+      details: 'Chose gauntlet at milestone'
+    });
+    
     // Take guaranteed damage
     this.cameras.main.shake(300, 0.03);
     if (gameState.takeDamage(1)) {
@@ -628,6 +644,15 @@ export class RunScene extends Phaser.Scene {
   }
 
   altarChoice() {
+    console.log('🎯 Milestone ALTAR clicked');
+    
+    // Log the action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'milestone_altar',
+      details: 'Chose altar at milestone'
+    });
+    
     gameState.decreaseGreed(2);
     gameState.heal(1);
     gameState.altarBonus = 10; // +10% exit odds next room
