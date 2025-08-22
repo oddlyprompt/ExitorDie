@@ -28,3 +28,17 @@ export default defineConfig({
     }
   }
 })
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  base: './', // so itch.io build works
+  server: {
+    host: true,                // listen on all addresses
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '.preview.emergentagent.com', // allow all Emergent preview hosts
+    ]
+  }
+})
