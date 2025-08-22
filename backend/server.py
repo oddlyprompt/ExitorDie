@@ -87,7 +87,7 @@ class ContentPack(BaseModel):
     active: bool = True
     rarity_weights: Dict[str, float] = {
         "Common": 40, "Uncommon": 22, "Rare": 12, "Epic": 8, "Mythic": 6,
-        "Ancient": 4, "Relic": 3, "Legendary": 2, "Transcendent": 1.5, "OneOfOne": 1.5
+        "Ancient": 4, "Relic": 3, "Legendary": 2, "Transcendent": 1.5, "1/1": 1.5
     }
     hazard_curve: Dict[str, float] = {
         "base": 2.0, "per_depth": 0.7, "per_greed": 0.8, "cap": 60
