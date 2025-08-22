@@ -600,6 +600,9 @@ export class RunScene extends Phaser.Scene {
     gameState.heal(1);
     gameState.altarBonus = 10; // +10% exit odds next room
     
+    // Play heal sparkle sound
+    audioSystem.playHealSparkle();
+    
     this.showHealEffect();
     
     // Continue to next room
