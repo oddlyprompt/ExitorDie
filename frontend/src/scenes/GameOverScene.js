@@ -210,6 +210,15 @@ export class GameOverScene extends Phaser.Scene {
         console.warn('Could not get equipped items:', equipError);
       }
 
+      // Ensure replayLog is always an array
+      const safeReplayLog = Array.isArray(gameState.replayLog) ? gameState.replayLog : [];
+      const safeInventory = Array.isArray(gameState.inventory) ? gameState.inventory : [];
+      
+      console.log('🔧 Safe arrays created:', {
+        replayLogLength: safeReplayLog.length,
+        inventoryLength: safeInventory.length
+      });
+
       // Format submission according to backend model
       const submission = {
         username: gameState.username || null,
@@ -219,24 +228,24 @@ export class GameOverScene extends Phaser.Scene {
         replayLog: {
           seed: (gameState.seed || Date.now()).toString(),
           contentVersion: "1.1.0",
-          rooms: (gameState.replayLog || []).map(action => ({
+          rooms: safeReplayLog.map(action => ({
             depth: action.depth || 0,
             type: action.action || 'unknown',
             choice: action.details || null
           })),
-          choices: (gameState.replayLog || []).map(action => action.action || 'unknown'),
+          choices: safeReplayLog.map(action => action.action || 'unknown'),
           rolls: gameState.roomsVisited || 0,
-          items: gameState.inventory ? gameState.inventory.map(item => item.name || 'Unknown') : []
+          items: safeInventory.map(item => item.name || 'Unknown')
         },
-        items: gameState.inventory ? gameState.inventory.map(item => ({
+        items: safeInventory.map(item => ({
           hash: item.hash || 'unknown',
           name: item.name || 'Unknown',
           rarity: item.rarity || 'Common',
           set: null,
-          effects: item.effects || [],
+          effects: Array.isArray(item.effects) ? item.effects : [],
           value: item.value || 0,
           lore: item.lore || ""
-        })) : []
+        }))
       };
 
       console.log('📝 Submitting score:', submission);
