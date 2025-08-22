@@ -60,6 +60,19 @@ export class AudioSystem {
   async loadBackgroundMusic() {
     try {
       console.log('🎵 Loading background music...');
+      
+      // Stop and cleanup any existing music
+      if (this.backgroundMusic) {
+        console.log('🎵 Stopping existing music...');
+        try {
+          this.backgroundMusic.stop();
+          this.backgroundMusic.disconnect();
+        } catch (e) {
+          console.warn('🎵 Error stopping existing music:', e);
+        }
+        this.backgroundMusic = null;
+      }
+      
       const response = await fetch('/exitordie.mp3');
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
@@ -69,11 +82,30 @@ export class AudioSystem {
       this.backgroundMusic.loop = true;
       this.backgroundMusic.connect(this.musicGain);
       
+      // Set initial volume
+      if (this.musicGain) {
+        this.musicGain.gain.setValueAtTime(this.musicVolume, this.audioContext.currentTime);
+      }
+      
       // Start playing
       this.backgroundMusic.start(0);
-      console.log('✅ Background music loaded and playing');
+      console.log('✅ Background music loaded and playing (single instance)');
     } catch (error) {
       console.warn('❌ Failed to load background music:', error);
+    }
+  }
+
+  // Stop all music (for cleanup)
+  stopMusic() {
+    if (this.backgroundMusic) {
+      try {
+        this.backgroundMusic.stop();
+        this.backgroundMusic.disconnect();
+        console.log('🎵 Music stopped');
+      } catch (e) {
+        console.warn('🎵 Error stopping music:', e);
+      }
+      this.backgroundMusic = null;
     }
   }
 
