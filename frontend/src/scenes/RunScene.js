@@ -912,6 +912,16 @@ export class RunScene extends Phaser.Scene {
   }
 
   triggerDeath() {
+    // Log the death action for replay validation
+    gameState.replayLog.push({
+      depth: gameState.depth,
+      action: 'death',
+      details: 'Player died'
+    });
+    
+    // Calculate final score before death
+    gameState.score = gameState.calculateScore();
+    
     // Play death boom sound
     audioSystem.playDeathBoom();
     
