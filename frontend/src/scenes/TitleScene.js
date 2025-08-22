@@ -9,12 +9,14 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    // Initialize audio system on first user interaction
-    this.input.once('pointerdown', async () => {
-      console.log('🎵 Initializing audio system...');
-      await audioSystem.initialize();
-      audioSystem.resume();
-    });
+    // Initialize audio system on first user interaction (only once)
+    if (!audioSystem.isInitialized) {
+      this.input.once('pointerdown', async () => {
+        console.log('🎵 Initializing audio system...');
+        await audioSystem.initialize();
+        audioSystem.resume();
+      });
+    }
 
     // Background gradient effect
     const gradient = this.add.graphics();
