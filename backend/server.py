@@ -548,6 +548,7 @@ async def get_leaderboard(
         # Format response
         rows = [
             LeaderboardEntry(
+                username=score.get("username", "Anonymous"),
                 score=score["score"],
                 depth=score["depth"],
                 artifacts=len(score["artifacts"]),
