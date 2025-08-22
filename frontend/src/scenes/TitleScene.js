@@ -35,13 +35,13 @@ export class TitleScene extends Phaser.Scene {
     // Custom seed input
     this.createCustomSeedInput();
 
-    // Menu buttons
+    // Menu buttons - Better spacing
     this.createButton(187.5, 380, 'NEW RUN', () => this.startNewRun());
-    this.createButton(187.5, 430, 'DAILY RUN', () => this.startDailyRun());
-    this.createButton(187.5, 480, 'PLAY SEED', () => this.startCustomSeed());
-    this.createButton(187.5, 530, 'HIGH SCORES', () => this.showHighScores());
-    this.createButton(187.5, 580, 'CODEX', () => this.showCodex());
-    this.createButton(187.5, 630, 'OPTIONS', () => this.showOptions());
+    this.createButton(187.5, 420, 'DAILY RUN', () => this.startDailyRun());
+    this.createButton(187.5, 460, 'PLAY SEED', () => this.startCustomSeed());
+    this.createButton(187.5, 500, 'HIGH SCORES', () => this.showHighScores());
+    this.createButton(187.5, 540, 'CODEX', () => this.showCodex());
+    this.createButton(187.5, 580, 'OPTIONS', () => this.showOptions());
 
     // DEBUG: Test if input is working at all
     this.input.on('pointerdown', (pointer) => {
