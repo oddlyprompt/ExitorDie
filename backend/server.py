@@ -162,6 +162,7 @@ class Item(BaseModel):
     minted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class LeaderboardEntry(BaseModel):
+    username: Optional[str] = None
     score: int
     depth: int
     artifacts: int
