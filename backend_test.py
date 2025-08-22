@@ -269,6 +269,7 @@ def main():
     print(f"   ✅ Daily Seed: {'PASS' if daily_ok else 'FAIL'}")
     print(f"   ✅ Leaderboard: {'PASS' if leaderboard_ok else 'FAIL'}")
     print(f"   ✅ Daily Leaderboard: {'PASS' if daily_leaderboard_ok else 'FAIL'}")
+    print(f"   ✅ Custom Seed: {'PASS' if custom_seed_ok else 'FAIL'}")
     print(f"   ✅ Score Submission: {'PASS' if score_ok else 'FAIL'}")
     print(f"   ✅ Admin Auth: {'PASS' if admin_ok else 'FAIL'}")
     
