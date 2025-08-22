@@ -13,7 +13,7 @@ export default defineConfig({
   preview: {
     port: 3000,
     host: '0.0.0.0',
-    allowedHosts: ['roguelike-phaser.preview.emergentagent.com', 'localhost', '0.0.0.0']
+    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'localhost', '0.0.0.0']
   },
   build: {
     outDir: 'dist',
