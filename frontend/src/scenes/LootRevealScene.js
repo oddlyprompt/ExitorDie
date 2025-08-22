@@ -517,7 +517,8 @@ export class LootRevealScene extends Phaser.Scene {
     });
     
     continueBtn.on('pointerup', () => {
-      this.scene.start('RunScene');
+      // Return to RunScene and tell it to generate next room
+      this.scene.start('RunScene', { generateNewRoom: true });
     });
   }
 
