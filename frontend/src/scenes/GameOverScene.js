@@ -15,21 +15,28 @@ export class GameOverScene extends Phaser.Scene {
   create() {
     console.log('🎯 GameOverScene create() called');
     try {
-      // Background
+      // Background - different color for victory
       const bg = this.add.graphics();
-      bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1);
+      if (this.isVictory) {
+        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x004a00, 0x004a00, 1); // Green tint for victory
+      } else {
+        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1); // Red tint for death
+      }
       bg.fillRect(0, 0, 375, 667);
 
-      // Game Over text
-      this.add.text(187.5, 150, 'GAME OVER', {
+      // Title text - different for victory vs death
+      const titleText = this.isVictory ? 'VICTORY!' : 'GAME OVER';
+      const titleColor = this.isVictory ? '#4ecdc4' : '#ff6b6b';
+      
+      this.add.text(187.5, 150, titleText, {
         fontSize: '36px',
-        fill: '#ff6b6b',
+        fill: titleColor,
         fontFamily: 'Courier New'
       }).setOrigin(0.5);
 
-      // Death message based on cause
-      const deathMessage = this.getDeathMessage();
-      this.add.text(187.5, 200, deathMessage, {
+      // Message based on victory or death
+      const message = this.isVictory ? this.getVictoryMessage() : this.getDeathMessage();
+      this.add.text(187.5, 200, message, {
         fontSize: '14px',
         fill: '#cccccc',
         fontFamily: 'Courier New',
