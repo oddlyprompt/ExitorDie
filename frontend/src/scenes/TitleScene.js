@@ -43,6 +43,11 @@ export class TitleScene extends Phaser.Scene {
     this.createButton(187.5, 580, 'CODEX', () => this.showCodex());
     this.createButton(187.5, 630, 'OPTIONS', () => this.showOptions());
 
+    // DEBUG: Test if input is working at all
+    this.input.on('pointerdown', (pointer) => {
+      console.log('🎯 Global pointer down at:', pointer.x, pointer.y);
+    });
+
     // Version info
     this.add.text(10, 650, 'v1.1.0', {
       fontSize: '12px',
