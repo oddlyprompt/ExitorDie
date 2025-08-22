@@ -214,11 +214,11 @@ export class GameOverScene extends Phaser.Scene {
       const submission = {
         username: gameState.username || null,
         seed: (gameState.seed || Date.now()).toString(), // Convert to string
-        version: "1.2.0",
+        version: "1.1.0",
         daily: gameState.isDailyRun || false,
         replayLog: {
           seed: (gameState.seed || Date.now()).toString(),
-          contentVersion: "1.2.0",
+          contentVersion: "1.1.0",
           rooms: (gameState.replayLog || []).map(action => ({
             depth: action.depth || 0,
             type: action.action || 'unknown',
