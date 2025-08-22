@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { setSeed, gameRNG } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
+import { audioSystem } from '../utils/AudioSystem.js';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
