@@ -144,6 +144,9 @@ export class LootRevealScene extends Phaser.Scene {
     this.isSpinning = true;
     this.spinButton.setAlpha(0.5);
     
+    // Play spin sound
+    audioSystem.playButtonClick();
+    
     // Find the target slice for our pre-rolled rarity
     const targetSlice = this.sliceMap.find(slice => slice.rarity === this.rolledRarity.name);
     if (!targetSlice) {
