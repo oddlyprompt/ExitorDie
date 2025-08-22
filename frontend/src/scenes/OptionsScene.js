@@ -67,6 +67,79 @@ export class OptionsScene extends Phaser.Scene {
     this.createBackButton();
   }
 
+  createVolumeSlider(x, y, title, initialValue, onChange) {
+    const container = this.add.container(x, y);
+    
+    // Title
+    const titleText = this.add.text(0, -15, title, {
+      fontSize: '14px',
+      fill: '#ffffff',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+    
+    // Slider track
+    const track = this.add.rectangle(0, 10, 200, 6, 0x333333);
+    
+    // Slider fill
+    const fill = this.add.rectangle(-100 + (initialValue * 200), 10, initialValue * 200, 6, 0x4ecdc4);
+    fill.setOrigin(0, 0.5);
+    
+    // Slider handle
+    const handle = this.add.circle(-100 + (initialValue * 200), 10, 8, 0xffffff);
+    handle.setStrokeStyle(2, 0x4ecdc4);
+    
+    // Volume text
+    const volumeText = this.add.text(0, 30, `${Math.round(initialValue * 100)}%`, {
+      fontSize: '12px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+    
+    container.add([titleText, track, fill, handle, volumeText]);
+    
+    // Make interactive
+    let isDragging = false;
+    
+    const updateSlider = (value) => {
+      value = Math.max(0, Math.min(1, value));
+      
+      const handleX = -100 + (value * 200);
+      handle.x = handleX;
+      fill.x = -100;
+      fill.width = value * 200;
+      volumeText.setText(`${Math.round(value * 100)}%`);
+      
+      onChange(value);
+    };
+    
+    handle.setInteractive({ draggable: true });
+    track.setInteractive();
+    
+    handle.on('dragstart', () => {
+      isDragging = true;
+      handle.setScale(1.2);
+    });
+    
+    handle.on('drag', (pointer, dragX) => {
+      if (isDragging) {
+        const localX = dragX - container.x;
+        const value = (localX + 100) / 200;
+        updateSlider(value);
+      }
+    });
+    
+    handle.on('dragend', () => {
+      isDragging = false;
+      handle.setScale(1);
+    });
+    
+    track.on('pointerdown', (pointer) => {
+      const localX = pointer.x - container.x;
+      const value = (localX + 100) / 200;
+      updateSlider(value);
+    });
+  }
+
   createToggle(x, y, title, description, initialValue, onToggle) {
     const container = this.add.container(x, y);
     
