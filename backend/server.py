@@ -101,7 +101,67 @@ class ContentPack(BaseModel):
     streak_chest: Dict[str, float] = {
         "interval": 3, "rarity_boost_multiplier": 1.8
     }
-    artifacts: List[Artifact] = []
+    artifacts: List[Artifact] = [
+        # Phoenix artifacts
+        Artifact(id="phoenix", name="Phoenix Feather", rarity="Legendary", 
+                effects=[{"id": "revive_charges", "v": 1}],
+                lore="Death is but a pause.", 
+                lore_long="A feather that burns but never ash. When darkness takes you, it whispers: not yet."),
+        
+        # Lucky artifacts  
+        Artifact(id="lucky_coin", name="Lucky Coin", rarity="Rare",
+                effects=[{"id": "exit_add", "v": 5}],
+                lore="Fortune favors the bold.",
+                lore_long="Worn smooth by countless thumbs. It hums with the weight of escaped fates."),
+        
+        # Cursed artifacts
+        Artifact(id="cursed_chalice", name="Cursed Chalice", rarity="Epic",
+                effects=[{"id": "risk_add", "v": 5}, {"id": "loot_chance", "v": 20}],
+                lore="Risk feeds reward.",
+                lore_long="Wine turned to shadow, cup to cursed gold. It thirsts for danger, pays in treasure."),
+        
+        # Set artifacts
+        Artifact(id="shadow_idol_1", name="Shadow Idol (Lesser)", rarity="Epic",
+                effects=[{"id": "rarity_step", "v": 1}],
+                lore="Part of the Shadow Set.",
+                lore_long="First of three idols carved from midnight stone. Alone, it whispers of greater power."),
+        
+        # Steady hand
+        Artifact(id="steady_hand", name="Steady Hand", rarity="Epic",
+                effects=[{"id": "risk_mult", "v": 0.9}],
+                lore="Your breath steadies. The blade no longer trembles.",
+                lore_long="A ribbon tied to remember patience. In the hush between heartbeats, danger misses by a whisper."),
+        
+        # Iron will
+        Artifact(id="iron_will", name="Iron Will", rarity="Rare",
+                effects=[{"id": "heal_on_milestone", "v": 1}],
+                lore="Resolve like riveted steel.",
+                lore_long="Once forged in oath, it never bends; at every bannered chamber, your wounds stitch on their own."),
+        
+        # Greed siphon
+        Artifact(id="greed_siphon", name="Siphon of Avarice", rarity="Legendary",
+                effects=[{"id": "greed_delta_on_continue", "v": -1}],
+                lore="Desire, domesticated.",
+                lore_long="A fine tube of glass; it sips a little hunger each step, trading frenzy for focus."),
+        
+        # Blood pact
+        Artifact(id="blood_pact", name="Blood Pact", rarity="Mythic",
+                effects=[{"id": "risk_add", "v": 10}, {"id": "loot_chance", "v": 35}],
+                lore="Pain for power.",
+                lore_long="A contract written in crimson. Every room bleeds more danger, but the vaults open easier."),
+        
+        # Guardian's charm
+        Artifact(id="guardian_charm", name="Guardian's Charm", rarity="Uncommon",
+                effects=[{"id": "risk_mult", "v": 0.95}],
+                lore="Small mercy in dark places.",
+                lore_long="A simple ward against harm. Nothing grand, but in the depths, small mercies save lives."),
+        
+        # Treasure magnet
+        Artifact(id="treasure_magnet", name="Treasure Magnet", rarity="Rare",
+                effects=[{"id": "loot_chance", "v": 15}],
+                lore="Gold calls to gold.",
+                lore_long="Lodestone blessed by ancient merchants. It pulls treasure from shadows like iron to magnet.")
+    ]
     sets: List[Set] = []
     value_multipliers: Dict[str, float] = {
         "Common": 1, "Uncommon": 1.2, "Rare": 1.5, "Epic": 2, "Mythic": 2.5,
