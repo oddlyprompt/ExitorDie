@@ -667,21 +667,25 @@ async def submit_score(request: Request, submission: ScoreSubmission):
         logger.error(f"Error submitting score: {e}")
         raise HTTPException(status_code=500, detail="Failed to submit score")
 
-@api_router.get("/items/{item_hash}")
-async def get_item(item_hash: str):
-    """Get item details by hash"""
+@api_router.get("/seed/play")
+async def get_custom_seed(seedStr: str):
+    """Convert string seed to 64-bit number"""
     try:
-        item = await db.items.find_one({"hash": item_hash})
-        if not item:
-            raise HTTPException(status_code=404, detail="Item not found")
+        # Hash string to 64-bit number (same as frontend)
+        hash_val = 0
+        for char in seedStr:
+            hash_val = ((hash_val << 5) - hash_val + ord(char)) & 0xffffffff
         
-        return Item(**item).dict()
+        seed64 = abs(hash_val)
+        
+        return {
+            "seed64": seed64,
+            "normalized": seedStr.strip()
+        }
     
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error fetching item: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch item")
+        logger.error(f"Error processing custom seed: {e}")
+        raise HTTPException(status_code=400, detail="Invalid seed string")
 
 # Include router
 app.include_router(api_router)
