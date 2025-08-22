@@ -51,18 +51,8 @@ export class GameState {
     // Options
     this.fastWheel = this.getStoredOption('fastWheel', false);
 
-    // Replay log
-    this.replayLog = {
-      username: this.username,
-      seed: this.seed,
-      seedString: this.seedString,
-      contentVersion: '1.1.0',
-      rooms: [],
-      choices: [],
-      rolls: 0,
-      items: [],
-      equipDecisions: []
-    };
+    // Replay log - Simple array of actions for backend validation
+    this.replayLog = [];
 
     // Discovered items for Codex
     this.discoveredItems = new Set();
