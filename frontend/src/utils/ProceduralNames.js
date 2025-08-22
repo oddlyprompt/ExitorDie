@@ -5,10 +5,22 @@
 
 export class ProceduralNameGenerator {
   constructor(contentPack) {
-    this.prefixes = contentPack.prefixes || this.getDefaultPrefixes();
-    this.bases = contentPack.bases || this.getDefaultBases();
-    this.suffixes = contentPack.suffixes || this.getDefaultSuffixes();
-    this.glyphs = contentPack.glyphs || ["⟡", "†", "Ω", "∆"];
+    console.log('🎯 ProceduralNameGenerator constructor, contentPack:', contentPack);
+    
+    // Ensure we have a valid contentPack object
+    const validContentPack = contentPack || {};
+    
+    this.prefixes = validContentPack.prefixes || this.getDefaultPrefixes();
+    this.bases = validContentPack.bases || this.getDefaultBases();
+    this.suffixes = validContentPack.suffixes || this.getDefaultSuffixes();
+    this.glyphs = validContentPack.glyphs || ["⟡", "†", "Ω", "∆"];
+    
+    console.log('🎯 ProceduralNameGenerator initialized with:', {
+      prefixes: this.prefixes.length,
+      bases: this.bases.length,
+      suffixes: this.suffixes.length,
+      glyphs: this.glyphs.length
+    });
   }
 
   getDefaultPrefixes() {
