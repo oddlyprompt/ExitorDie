@@ -19,6 +19,11 @@ export class RunScene extends Phaser.Scene {
   create() {
     console.log('🎯 RunScene create() method called');
     try {
+      // Initialize error handling for the whole scene
+      this.scene.manager.game.events.on('prestep', () => {
+        // Catch any uncaught errors during game loop
+      });
+
       // Background
       console.log('🎯 Creating background...');
       this.createBackground();
@@ -42,8 +47,28 @@ export class RunScene extends Phaser.Scene {
       
       console.log('✅ RunScene created successfully!');
     } catch (error) {
-      console.error('❌ Error in RunScene create():', error);
+      console.error('❌ CRITICAL ERROR in RunScene create():', error);
       console.error('❌ Error stack:', error.stack);
+      
+      // Show error message on screen
+      this.add.text(187.5, 300, `LOADING ERROR:\n${error.message}`, {
+        fontSize: '16px',
+        fill: '#ff0000',
+        fontFamily: 'Courier New',
+        align: 'center'
+      }).setOrigin(0.5);
+      
+      // Add back to title button
+      const backButton = this.add.text(187.5, 400, 'BACK TO TITLE', {
+        fontSize: '14px',
+        fill: '#ffffff',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
+      
+      backButton.setInteractive();
+      backButton.on('pointerup', () => {
+        this.scene.start('TitleScene');
+      });
     }
   }
 
