@@ -160,6 +160,20 @@ export class GameState {
       type: roomType,
       choice: choice
     });
+    
+    if (choice) {
+      this.replayLog.choices.push(choice);
+    }
+  }
+  
+  // Log RNG usage
+  consumeRoll() {
+    this.replayLog.rolls++;
+  }
+  
+  // Add item to replay log
+  recordItem(itemHash) {
+    this.replayLog.items.push(itemHash);
   }
 }
 
