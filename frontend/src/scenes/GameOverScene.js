@@ -209,40 +209,53 @@ export class GameOverScene extends Phaser.Scene {
       } catch (equipError) {
         console.warn('Could not get equipped items:', equipError);
       }
+
+      // Format submission according to backend model
+      const submission = {
+        username: gameState.username || null,
+        seed: (gameState.seed || Date.now()).toString(), // Convert to string
+        version: "1.2.0",
+        daily: gameState.isDailyRun || false,
+        replayLog: {
+          depth: gameState.depth || 0,
+          score: gameState.score || 0,
+          treasureValue: gameState.treasureValue || 0,
+          roomsVisited: gameState.roomsVisited || 0,
+          actions: gameState.replayLog || []
+        },
+        items: gameState.inventory ? gameState.inventory.map(item => ({
+          name: item.name || 'Unknown',
+          rarity: item.rarity || 'Common',
+          value: item.value || 0,
+          equipped: equippedItems.includes(item.name)
+        })) : []
+      };
+
+      console.log('📝 Submitting score:', submission);
       
       const response = await fetch(`${backendUrl}/api/score/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          username: gameState.username || 'Anonymous',
-          score: gameState.score || 0,
-          depth: gameState.depth || 0,
-          seed: gameState.seed || Date.now(),
-          seedString: gameState.seedString || null,
-          isDailyRun: gameState.isDailyRun || false,
-          treasureValue: gameState.treasureValue || 0,
-          roomsVisited: gameState.roomsVisited || 0,
-          equippedItems: equippedItems,
-          replayLog: gameState.replayLog || []
-        })
+        body: JSON.stringify(submission)
       });
+
+      console.log('📝 Score submission response status:', response.status);
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Score submitted successfully:', result);
+        console.log('✅ Score submitted successfully:', result);
         
-        // Show confirmation if needed
-        if (result.validated) {
-          this.add.text(187.5, 450, 'Score submitted and validated!', {
-            fontSize: '10px',
-            fill: '#4ecdc4',
-            fontFamily: 'Courier New'
-          }).setOrigin(0.5);
-        }
+        // Show confirmation
+        this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
+          fontSize: '10px',
+          fill: '#4ecdc4',
+          fontFamily: 'Courier New'
+        }).setOrigin(0.5);
       } else {
-        console.warn('Failed to submit score, status:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Score submission failed:', response.status, errorText);
       }
     } catch (error) {
       console.error('❌ Error submitting score:', error);
