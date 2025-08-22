@@ -558,22 +558,34 @@ export class RunScene extends Phaser.Scene {
 
   // Milestone room actions
   milestoneContinue() {
+    console.log('🎯 Milestone CONTINUE clicked');
     gameState.increaseGreed(1);
     gameState.roomsSinceLoot = 0; // Reset since guaranteed loot
+    
+    // CRITICAL FIX: Advance depth before loot reveal
+    gameState.depth++;
+    console.log('🎯 Advanced to depth:', gameState.depth);
     
     // Guaranteed boosted loot
     this.triggerLootReveal(true); // true = milestone boost
   }
 
   gauntletChoice() {
+    console.log('🎯 Milestone GAUNTLET clicked');
     // Take guaranteed damage
     this.cameras.main.shake(300, 0.03);
     if (gameState.takeDamage(1)) {
+      console.log('🎯 Gauntlet killed player');
       this.triggerDeath();
       return;
     }
     
+    console.log('🎯 Gauntlet damage taken, HP now:', gameState.hp);
     gameState.roomsSinceLoot = 0;
+    
+    // CRITICAL FIX: Advance depth before loot reveal
+    gameState.depth++;
+    console.log('🎯 Advanced to depth:', gameState.depth);
     
     // Double boosted loot (two spins)
     this.triggerLootReveal(true, true); // milestone boost + double
