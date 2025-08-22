@@ -35,8 +35,11 @@ export class TitleScene extends Phaser.Scene {
     // Custom seed input
     this.createCustomSeedInput();
 
-    // Menu buttons
-    this.createButton(187.5, 380, 'NEW RUN', () => this.startNewRun());
+    // Menu buttons - Test with simple alert first
+    this.createButton(187.5, 380, 'NEW RUN', () => { 
+      alert('NEW RUN button clicked!'); 
+      this.startNewRun(); 
+    });
     this.createButton(187.5, 430, 'DAILY RUN', () => this.startDailyRun());
     this.createButton(187.5, 480, 'PLAY SEED', () => this.startCustomSeed());
     this.createButton(187.5, 530, 'HIGH SCORES', () => this.showHighScores());
