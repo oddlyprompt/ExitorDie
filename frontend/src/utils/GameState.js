@@ -2,8 +2,8 @@
  * Global game state management - v1.1.0 Major Update
  * Includes: Equipment system, Fair RNG, Milestone rooms, Username, Custom seeds
  */
-import { EquipSystem } from './EquipSystem.js';
 import { ProceduralNameGenerator } from './ProceduralNames.js';
+import { EquipSystem } from './EquipSystem.js';
 import { runModifiers } from './RunModifiers.js';
 
 export class GameState {
