@@ -203,51 +203,90 @@ export class ProceduralNameGenerator {
 
   // Generate procedural item name
   generateName(rng, rarity, depth, rollIndex) {
-    const rarityTier = this.getRarityTier(rarity);
+    console.log('🎯 generateName called with:', { rarity, depth, rollIndex });
     
-    // Select components with tier bias
-    const prefix = this.selectWeightedByTier(this.prefixes, rng, rarityTier);
-    const base = this.selectWeightedByTier(this.bases, rng, rarityTier);
-    const suffix = this.selectWeightedByTier(this.suffixes, rng, rarityTier);
-    
-    // Glyph chance - only for Epic+ with scaling probability
-    let glyph = null;
-    if (rarityTier >= 3) { // Epic+
-      const glyphChance = 0.1 + (rarityTier - 3) * 0.05; // 10% base, +5% per tier
-      if (rng.next() < glyphChance) {
-        glyph = rng.choice(this.glyphs);
+    try {
+      const rarityTier = this.getRarityTier(rarity);
+      console.log('🎯 rarityTier:', rarityTier);
+      
+      // Select components with tier bias
+      const prefix = this.selectWeightedByTier(this.prefixes, rng, rarityTier);
+      const base = this.selectWeightedByTier(this.bases, rng, rarityTier);
+      const suffix = this.selectWeightedByTier(this.suffixes, rng, rarityTier);
+      
+      console.log('🎯 Selected components:', { prefix, base, suffix });
+      
+      // Safety check - ensure all components have names
+      if (!prefix || !prefix.name || !base || !base.name || !suffix || !suffix.name) {
+        console.error('❌ Invalid component selected:', { prefix, base, suffix });
+        // Return fallback name
+        return {
+          name: `Mysterious ${rarity} Item`,
+          hash: 'fallback',
+          baseValue: 100,
+          components: {
+            prefix: null,
+            base: null,
+            suffix: null,
+            glyph: null
+          }
+        };
       }
-    }
-    
-    // Construct name
-    let name = `${prefix.name} ${base.name} ${suffix.name}`;
-    if (glyph) {
-      name += ` ${glyph}`;
-    }
-    
-    // Generate deterministic hash
-    const hashData = JSON.stringify({
-      depth,
-      rollIndex,
-      prefixId: prefix.id,
-      baseId: base.id,
-      suffixId: suffix.id,
-      glyph: glyph || null
-    });
-    
-    const hash = this.simpleHash(hashData);
-    
-    return {
-      name,
-      hash,
-      baseValue: base.base_value,
-      components: {
-        prefix: prefix.id,
-        base: base.id,
-        suffix: suffix.id,
-        glyph
+      
+      // Glyph chance - only for Epic+ with scaling probability
+      let glyph = null;
+      if (rarityTier >= 3) { // Epic+
+        const glyphChance = 0.1 + (rarityTier - 3) * 0.05; // 10% base, +5% per tier
+        if (rng.next() < glyphChance) {
+          glyph = rng.choice(this.glyphs);
+        }
       }
-    };
+      
+      // Construct name
+      let name = `${prefix.name} ${base.name} ${suffix.name}`;
+      if (glyph) {
+        name += ` ${glyph}`;
+      }
+      
+      // Generate deterministic hash
+      const hashData = JSON.stringify({
+        depth,
+        rollIndex,
+        prefixId: prefix.id,
+        baseId: base.id,
+        suffixId: suffix.id,
+        glyph: glyph || null
+      });
+      
+      const hash = this.simpleHash(hashData);
+      
+      console.log('✅ Generated name:', name);
+      
+      return {
+        name,
+        hash,
+        baseValue: base.base_value,
+        components: {
+          prefix: prefix.id,
+          base: base.id,
+          suffix: suffix.id,
+          glyph
+        }
+      };
+    } catch (error) {
+      console.error('❌ Error in generateName:', error);
+      return {
+        name: `Mysterious ${rarity} Item`,
+        hash: 'error',
+        baseValue: 100,
+        components: {
+          prefix: null,
+          base: null,
+          suffix: null,
+          glyph: null
+        }
+      };
+    }
   }
 
   // Simple hash function
