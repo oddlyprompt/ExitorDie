@@ -7,7 +7,8 @@ export default defineConfig({
     host: '0.0.0.0',
     hmr: {
       port: 3000
-    }
+    },
+    allowedHosts: 'all'
   },
   preview: {
     port: 3000,
