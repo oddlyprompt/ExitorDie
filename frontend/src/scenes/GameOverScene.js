@@ -188,7 +188,7 @@ export class GameOverScene extends Phaser.Scene {
 
   async submitScore() {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://roguelike-phaser.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://exitordieplay.preview.emergentagent.com';
       
       const scoreData = {
         seed: gameState.seed.toString(),

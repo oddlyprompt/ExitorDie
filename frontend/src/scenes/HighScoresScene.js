@@ -102,7 +102,7 @@ export class HighScoresScene extends Phaser.Scene {
     this.scoreContainer.add(loadingText);
     
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://roguelike-phaser.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://exitordieplay.preview.emergentagent.com';
       
       // Fetch real leaderboard data
       const params = new URLSearchParams({
