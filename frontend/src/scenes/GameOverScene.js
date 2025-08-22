@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
+import { audioSystem } from '../utils/AudioSystem.js';
 
 export class GameOverScene extends Phaser.Scene {
   constructor() {
