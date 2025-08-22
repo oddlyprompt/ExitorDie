@@ -11,6 +11,7 @@ export class LootRevealScene extends Phaser.Scene {
     // Receive pre-rolled rarity and item data - NEVER roll again
     this.rolledRarity = data.rolledRarity;
     this.itemData = data.itemData;
+    this.doubleReward = data.doubleReward || false;
   }
 
   create() {
@@ -34,6 +35,9 @@ export class LootRevealScene extends Phaser.Scene {
     
     // Track animation state
     this.isSpinning = false;
+    this.itemsRevealed = 0;
+    this.totalItems = this.doubleReward ? 2 : 1;
+    this.revealedItems = [];
   }
 
   createRouletteWheel() {
@@ -98,8 +102,8 @@ export class LootRevealScene extends Phaser.Scene {
       this.wheelContainer.add([slice, label]);
     });
     
-    // Fixed pointer at 12 o'clock (wheel rotates, pointer stays)
-    this.pointer = this.add.triangle(187.5, 200 - 15, 0, 0, -10, 20, 10, 20, 0xff6b6b);
+    // Fixed pointer at 12 o'clock (corrected to point UP)
+    this.pointer = this.add.triangle(187.5, 200 - 15, 0, 20, -10, 0, 10, 0, 0xff6b6b);
   }
 
   createSpinButton() {
@@ -193,13 +197,10 @@ export class LootRevealScene extends Phaser.Scene {
 
   revealLoot() {
     this.isSpinning = false;
+    this.itemsRevealed++;
     
-    // Add to game state
-    if (this.itemData.type === 'artifact') {
-      gameState.addArtifact(this.itemData);
-    } else {
-      gameState.treasureValue += this.itemData.value;
-    }
+    // Store the current item
+    this.revealedItems.push(this.itemData);
     
     // Show item card popup
     this.showItemCard();
@@ -219,20 +220,22 @@ export class LootRevealScene extends Phaser.Scene {
     const cardContainer = this.add.container(187.5, 333.5);
     
     // Card background
-    const cardBg = this.add.rectangle(0, 0, 280, 200, 0x2a2a2a, 0.95);
+    const cardBg = this.add.rectangle(0, 0, 300, 220, 0x2a2a2a, 0.95);
     cardBg.setStrokeStyle(3, Phaser.Display.Color.HexStringToColor(this.rolledRarity.color).color);
     
     // Item name with rarity color
-    const nameText = this.add.text(0, -60, this.itemData.name, {
-      fontSize: '18px',
+    const nameText = this.add.text(0, -70, this.itemData.name, {
+      fontSize: '16px',
       fill: this.rolledRarity.color,
       fontFamily: 'Courier New',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
+      align: 'center',
+      wordWrap: { width: 280 }
     }).setOrigin(0.5);
     
     // 1/1 badge for special rarity
     if (this.rolledRarity.name === '1/1') {
-      const badge = this.add.container(100, -60);
+      const badge = this.add.container(120, -70);
       const badgeBg = this.add.rectangle(0, 0, 30, 20, 0xdc2626);
       const badgeText = this.add.text(0, 0, '1/1', {
         fontSize: '10px',
@@ -245,23 +248,23 @@ export class LootRevealScene extends Phaser.Scene {
     }
     
     // Item value
-    const valueText = this.add.text(0, -30, `Value: ${this.itemData.value}`, {
+    const valueText = this.add.text(0, -40, `Value: ${this.itemData.value}`, {
       fontSize: '14px',
       fill: '#feca57',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
     // Item lore (one line)
-    const loreText = this.add.text(0, 0, this.itemData.lore, {
+    const loreText = this.add.text(0, -20, this.itemData.lore, {
       fontSize: '12px',
       fill: '#cccccc',
       fontFamily: 'Courier New',
       align: 'center',
-      wordWrap: { width: 250 }
+      wordWrap: { width: 280 }
     }).setOrigin(0.5);
     
     // Rarity name
-    const rarityText = this.add.text(0, 25, this.rolledRarity.name.toUpperCase(), {
+    const rarityText = this.add.text(0, 5, this.rolledRarity.name.toUpperCase(), {
       fontSize: '12px',
       fill: this.rolledRarity.color,
       fontFamily: 'Courier New',
@@ -279,7 +282,7 @@ export class LootRevealScene extends Phaser.Scene {
       ease: 'Back.easeOut'
     });
     
-    // Auto-close after 1.2 seconds
+    // Auto-close after 1.2 seconds, then show equip/bank choice
     this.time.delayedCall(1200, () => {
       this.tweens.add({
         targets: [overlay, cardContainer],
@@ -289,16 +292,206 @@ export class LootRevealScene extends Phaser.Scene {
         onComplete: () => {
           overlay.destroy();
           cardContainer.destroy();
-          this.showContinueButton();
+          this.showEquipBankChoice();
         }
       });
     });
   }
 
-  showContinueButton() {
+  showEquipBankChoice() {
     // Remove spin button
     this.spinButton.destroy();
     
+    // Create equip/bank modal
+    const overlay = this.add.rectangle(187.5, 333.5, 375, 667, 0x000000, 0.8);
+    overlay.setInteractive();
+    
+    const modal = this.add.container(187.5, 333.5);
+    
+    // Modal background
+    const modalBg = this.add.rectangle(0, 0, 320, 250, 0x2a2a2a, 0.95);
+    modalBg.setStrokeStyle(2, 0xff6b6b);
+    
+    // Title
+    const title = this.add.text(0, -100, 'EQUIP OR BANK?', {
+      fontSize: '18px',
+      fill: '#ffffff',
+      fontFamily: 'Courier New',
+      fontWeight: 'bold'
+    }).setOrigin(0.5);
+    
+    // Item name
+    const itemName = this.add.text(0, -75, this.itemData.name, {
+      fontSize: '14px',
+      fill: this.rolledRarity.color,
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+    
+    modal.add([modalBg, title, itemName]);
+    
+    // Equipment slot buttons
+    const slot1Free = gameState.equipSystem.isSlotFree(0);
+    const slot2Free = gameState.equipSystem.isSlotFree(1);
+    
+    // E1 button
+    const e1Button = this.createEquipButton(-80, -30, 'EQUIP E1', 
+      slot1Free ? 'Empty slot' : `Replace: ${gameState.equipSystem.slots[0].name.substr(0, 10)}`,
+      () => this.equipToSlot(0, overlay, modal));
+    modal.add(e1Button);
+    
+    // E2 button
+    const e2Button = this.createEquipButton(80, -30, 'EQUIP E2',
+      slot2Free ? 'Empty slot' : `Replace: ${gameState.equipSystem.slots[1].name.substr(0, 10)}`, 
+      () => this.equipToSlot(1, overlay, modal));
+    modal.add(e2Button);
+    
+    // Bank button
+    const bankButton = this.createEquipButton(0, 20, 'BANK', 
+      `Add ${this.itemData.value} value, no effect`,
+      () => this.bankItem(overlay, modal));
+    modal.add(bankButton);
+    
+    // Show modal with animation
+    modal.setScale(0);
+    this.tweens.add({
+      targets: modal,
+      scale: 1,
+      duration: 300,
+      ease: 'Back.easeOut'
+    });
+  }
+
+  createEquipButton(x, y, text, description, callback) {
+    const button = this.add.container(x, y);
+    
+    const bg = this.add.rectangle(0, 0, 140, 50, 0x333333, 0.8);
+    bg.setStrokeStyle(2, 0x4ecdc4);
+    
+    const buttonText = this.add.text(0, -8, text, {
+      fontSize: '12px',
+      fill: '#4ecdc4',
+      fontFamily: 'Courier New',
+      fontWeight: 'bold'
+    }).setOrigin(0.5);
+    
+    const descText = this.add.text(0, 8, description, {
+      fontSize: '9px',
+      fill: '#aaaaaa',
+      fontFamily: 'Courier New',
+      align: 'center',
+      wordWrap: { width: 130 }
+    }).setOrigin(0.5);
+    
+    button.add([bg, buttonText, descText]);
+    button.setSize(140, 50);
+    button.setInteractive();
+    
+    button.on('pointerover', () => {
+      bg.setFillStyle(0x4ecdc4, 0.2);
+      buttonText.setScale(1.05);
+    });
+    
+    button.on('pointerout', () => {
+      bg.setFillStyle(0x333333, 0.8);
+      buttonText.setScale(1);
+    });
+    
+    button.on('pointerup', callback);
+    
+    return button;
+  }
+
+  equipToSlot(slotIndex, overlay, modal) {
+    const replacedItem = gameState.equipItem(this.itemData, slotIndex);
+    
+    // Show replacement feedback if item was replaced
+    if (replacedItem) {
+      this.showReplacementFeedback(replacedItem);
+    }
+    
+    this.closeModalAndContinue(overlay, modal);
+  }
+
+  bankItem(overlay, modal) {
+    gameState.bankItem(this.itemData);
+    this.closeModalAndContinue(overlay, modal);
+  }
+
+  showReplacementFeedback(replacedItem) {
+    const feedbackText = this.add.text(187.5, 180, 
+      `${replacedItem.name} moved to inventory`, {
+      fontSize: '12px',
+      fill: '#feca57',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+    
+    this.tweens.add({
+      targets: feedbackText,
+      alpha: 0,
+      y: 150,
+      duration: 1500,
+      onComplete: () => feedbackText.destroy()
+    });
+  }
+
+  closeModalAndContinue(overlay, modal) {
+    this.tweens.add({
+      targets: [overlay, modal],
+      alpha: 0,
+      scale: 0.8,
+      duration: 200,
+      onComplete: () => {
+        overlay.destroy();
+        modal.destroy();
+        
+        // Check if we need to show more items (double reward)
+        if (this.itemsRevealed < this.totalItems) {
+          this.prepareNextItem();
+        } else {
+          this.showContinueButton();
+        }
+      }
+    });
+  }
+
+  prepareNextItem() {
+    // Generate second item for double reward
+    const secondRarity = this.rollSecondRarity();
+    const secondItem = gameState.generateProceduralItem(gameRNG, secondRarity.name);
+    
+    this.rolledRarity = secondRarity;
+    this.itemData = secondItem;
+    
+    // Reset wheel and show spin button
+    this.wheelContainer.setRotation(0);
+    this.createSpinButton();
+  }
+
+  rollSecondRarity() {
+    // Second item has same boost as first
+    const rarities = gameState.contentPack.rarities;
+    
+    // Apply milestone boost
+    let adjustedRarities = rarities.map((r, index) => ({
+      ...r,
+      weight: index < 3 ? r.weight * 0.6 : r.weight * 1.4
+    }));
+    
+    // Weighted selection
+    const totalWeight = adjustedRarities.reduce((sum, r) => sum + r.weight, 0);
+    let random = gameRNG.nextFloat(0, totalWeight);
+    
+    for (const rarity of adjustedRarities) {
+      random -= rarity.weight;
+      if (random <= 0) {
+        return rarity;
+      }
+    }
+    
+    return adjustedRarities[0];
+  }
+
+  showContinueButton() {
     // Continue button
     const continueBtn = this.add.container(187.5, 580);
     const btnBg = this.add.rectangle(0, 0, 120, 40, 0x333333, 0.8);
@@ -330,7 +523,7 @@ export class LootRevealScene extends Phaser.Scene {
 
   createConfetti() {
     // Create colorful confetti particles
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 30; i++) {
       const confetti = this.add.circle(
         gameRNG.nextInt(50, 325),
         gameRNG.nextInt(0, 200),
@@ -344,7 +537,7 @@ export class LootRevealScene extends Phaser.Scene {
         x: confetti.x + gameRNG.nextInt(-50, 50),
         rotation: gameRNG.nextFloat(0, Math.PI * 4),
         alpha: 0,
-        duration: gameRNG.nextInt(1000, 2500),
+        duration: gameRNG.nextInt(1200, 2800),
         ease: 'Power2',
         onComplete: () => confetti.destroy()
       });
