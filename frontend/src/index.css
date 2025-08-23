@@ -2,21 +2,317 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==============================================
+   EXIT OR DIE - LIMINAL ROGUELIKE STYLES
+   ============================================== */
+
+:root {
+  /* Liminal Color Palette */
+  --coral: #ff6b6b;
+  --coral-glow: rgba(255, 107, 107, 0.3);
+  --gold: #feca57;
+  --gold-glow: rgba(254, 202, 87, 0.3);
+  --teal: #4ecdc4;
+  --teal-glow: rgba(78, 205, 196, 0.3);
+  --purple: #8b5cf6;
+  --blue: #45b7d1;
+  
+  /* UI Spacing & Sizing */
+  --btn-pad-x: 16px;
+  --btn-pad-y: 12px;
+  --btn-sub-font: clamp(11px, 1.6vw, 14px);
+  --hud-font-base: clamp(12px, 1.8vw, 16px);
+  --hud-font-small: clamp(10px, 1.5vw, 13px);
+  --btn-font: clamp(16px, 2.2vw, 22px);
+  
+  /* Greed Bar */
+  --greed-bar-width: 140px;
+  --greed-bar-height: 12px;
+  --greed-bg: #1e1e24;
+  --greed-fill: linear-gradient(90deg, #f7b733, #fc4a1a);
+}
+
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif;
+    font-family: 'Courier New', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono',
+        Consolas, 'Droid Sans Mono', 'Andale Mono', 'Ubuntu Mono', monospace;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: #1a1a1a;
+    color: #ffffff;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-        monospace;
+    font-family: 'Courier New', 'SF Mono', Monaco, Inconsolata, 'Roboto Mono',
+        Consolas, 'Droid Sans Mono', 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
+/* ==============================================
+   BUTTON COMPONENTS (for any HTML UI)
+   ============================================== */
 
+.btn {
+  font-family: 'Courier New', monospace;
+  font-size: var(--btn-font);
+  font-weight: normal;
+  color: var(--coral);
+  background: rgba(51, 51, 51, 0.8);
+  border: 2px solid var(--coral);
+  border-radius: 4px;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  /* Subtle glow effect */
+  box-shadow: 0 0 8px var(--coral-glow);
+}
+
+.btn:hover {
+  background: rgba(255, 107, 107, 0.2);
+  box-shadow: 0 0 12px var(--coral-glow);
+  transform: scale(1.02);
+}
+
+.btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 6px var(--coral-glow);
+}
+
+/* Button with subtext */
+.btn.has-sub {
+  padding-bottom: calc(var(--btn-pad-y) + var(--btn-sub-font) + 6px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn .main {
+  font-size: var(--btn-font);
+  color: var(--coral);
+  line-height: 1.1;
+  font-weight: normal;
+}
+
+.btn .sub {
+  font-size: var(--btn-sub-font);
+  color: #aaaaaa;
+  opacity: 0.95;
+  line-height: 1.2;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+/* Color variants */
+.btn.teal {
+  color: var(--teal);
+  border-color: var(--teal);
+  box-shadow: 0 0 8px var(--teal-glow);
+}
+
+.btn.teal:hover {
+  background: rgba(78, 205, 196, 0.2);
+  box-shadow: 0 0 12px var(--teal-glow);
+}
+
+.btn.gold {
+  color: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+
+.btn.gold:hover {
+  background: rgba(254, 202, 87, 0.2);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+/* ==============================================
+   HUD COMPONENTS
+   ============================================== */
+
+.hud {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "left center right";
+  align-items: start;
+  gap: 16px;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.hud-left {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-self: start;
+}
+
+.hud-center {
+  grid-area: center;
+  text-align: center;
+  justify-self: center;
+}
+
+.hud-right {
+  grid-area: right;
+  text-align: right;
+  justify-self: end;
+}
+
+/* Hearts display */
+.hearts {
+  font-size: var(--hud-font-base);
+  color: var(--coral);
+  letter-spacing: 2px;
+  text-shadow: 0 0 4px var(--coral-glow);
+}
+
+.hearts .empty {
+  color: #666666;
+  text-shadow: none;
+}
+
+/* Greed bar container */
+.greed {
+  width: var(--greed-bar-width);
+  height: var(--greed-bar-height);
+  background: var(--greed-bg);
+  border-radius: calc(var(--greed-bar-height) / 2);
+  position: relative;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.greed-fill {
+  height: 100%;
+  background: var(--greed-fill);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.greed-label {
+  font-size: var(--hud-font-small);
+  color: var(--gold);
+  margin-left: 6px;
+  line-height: 1;
+  text-shadow: 0 0 2px var(--gold-glow);
+}
+
+/* Depth and seed info */
+.depth {
+  font-size: var(--hud-font-base);
+  color: #cccccc;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.seed {
+  font-size: var(--hud-font-small);
+  color: #888888;
+  opacity: 0.8;
+}
+
+/* Stats (Exit % and Risk %) */
+.stats {
+  font-size: var(--hud-font-small);
+  line-height: 1.4;
+}
+
+.exit-percent {
+  color: var(--teal);
+  text-shadow: 0 0 2px var(--teal-glow);
+}
+
+.exit-percent.low {
+  color: #cccccc;
+  text-shadow: none;
+}
+
+.risk-percent {
+  color: #cccccc;
+}
+
+.risk-percent.high {
+  color: var(--coral);
+  text-shadow: 0 0 2px var(--coral-glow);
+}
+
+/* Equipment display */
+.equipment {
+  font-size: var(--hud-font-small);
+  color: #cccccc;
+  opacity: 0.9;
+}
+
+.equipment .slot {
+  color: var(--gold);
+}
+
+.equipment .empty {
+  color: #666666;
+}
+
+/* ==============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================== */
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+  .hud {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .greed {
+    width: 120px;
+    height: 10px;
+  }
+  
+  .btn {
+    font-size: clamp(14px, 2vw, 18px);
+  }
+}
+
+/* Large desktop / iframe optimization */
+@media (min-width: 1024px) {
+  .hud {
+    padding: 24px;
+  }
+  
+  .greed {
+    width: 160px;
+    height: 14px;
+  }
+}
+
+/* Itch.io iframe specific */
+@media (max-width: 800px) and (max-height: 600px) {
+  .hud {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .btn {
+    font-size: clamp(12px, 1.8vw, 16px);
+  }
+  
+  .btn .sub {
+    font-size: clamp(9px, 1.2vw, 12px);
+  }
+}
 
 @layer base {
   :root {
