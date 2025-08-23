@@ -1,105 +1,109 @@
 <analysis>
-The AI engineer successfully transitioned the initial project from a React/FastAPI/MongoDB boilerplate to a Phaser 3 game with a Vite frontend and FastAPI backend, as per the user's detailed . Initial efforts focused on frontend setup, involving a complete refactor from Create React App to Vite, and then implementing the seven core game scenes and mechanics. Significant challenges arose from environment configurations, specifically supervisor scripts not aligning with Vite's build process, and persistent CORS/host blocking issues with the Vite preview server, which were meticulously resolved.
-
-Following the core game, the AI integrated a FastAPI backend to handle content, leaderboards, and anti-cheat score validation. Two major feature sprints were completed, adding polish like deterministic loot wheels, consumables, procedural item naming, and an equip system, alongside content pack updates. The current work is focused on debugging a critical bug where TitleScene buttons are non-functional, identified by the testing agent, immediately after implementing the v1.1.0 sprint features. The AI is systematically investigating this issue.
+The AI engineer's work trajectory is a detailed account of bug fixing, refactoring, and feature implementation for the Exit or Die game. Initially, the engineer resolved critical frontend loading issues, including a host blocking error and a tricky timing-related bug in the TitleScene. A significant portion of the work involved diagnosing and fixing core gameplay mechanics: non-functional buttons, missing room content (due to a missing  method), broken milestone room advancement (due to depth not updating), and a complete overhaul of the procedural item name generation logic (addressing empty data arrays). The engineer then tackled crucial backend integration issues related to score submission, accurately matching frontend data with backend Pydantic models, and correctly populating the  for server-side score validation. Finally, a comprehensive audio system with volume controls and background music was implemented and debugged, alongside numerous small bug fixes and debugging enhancements (e.g., Eruda console). The latest fix addressed a  where  was an object instead of an array.
 </analysis>
 
 <product_requirements>
-The overarching goal is to build a mobile-first, browser-based roguelike game called Exit or Die using Phaser 3 and Vite, deployable as a static site on Vercel and itch.io. The game features seven scenes (Boot, Title, Run, LootReveal, GameOver, HighScores, Codex) implementing core mechanics like HP, Greed, deterministic RNG, room modifiers, and a 10-rarity loot system. Backend integration is required for content packs, daily seeds, paginated leaderboards, and server-authoritative score validation via replay logs.
+The goal is to develop Exit or Die, a mobile-first, browser-based roguelike using Phaser 3 (frontend) and FastAPI/MongoDB (backend). Key features include seven game scenes, core mechanics (HP, Greed, deterministic RNG, loot system, room modifiers), and backend integration for content packs, daily seeds, paginated leaderboards, and server-authoritative score validation via replay logs.
 
-Subsequent updates included:
-- **v1.0.2 Polish**: Deterministic roulette wheel, item card pop-ups, procedural flavor text, refined game balance (20-30 room target, 4 starting HP, updated curves, pity system), and consumables (Smoke Bomb, Field Bandage).
-- **v1.1.0 Sprint**: Main menu updates (username, custom seed), Safe first two rooms, death-risk smoothing, milestone rooms with boosted drops and forks, equip/bank system for artifacts, procedural item naming (1000+ combinations), HUD cleanup, and backend adjustments for username, custom seeds, and content pack v1.1.0.
+**Implemented Features (v1.0.2 & v1.1.0 sprints):**
+*   **Core Polish**: Deterministic roulette wheel, item card pop-ups, procedural flavor text, refined game balance (room target, HP, curves, pity system), and consumables (Smoke Bomb, Field Bandage).
+*   **v1.1.0 Sprint**: Main menu (username, custom seed, play seed button), Safe first two rooms, death-risk smoothing, milestone rooms (boosted drops, forks), equip/bank system for artifacts, procedural item naming (1000+ combinations), HUD cleanup, backend adjustments for username, custom seeds, content pack v1.1.0.
+
+**New Sprint Requirements (Equip Effects, Lore & Audio, Desktop Alignment):**
+*   **Equip System**: Two equip slots (E1, E2) wired into  for additive/multiplicative effects (risk, exit, rarity, loot chance, greed delta, heal on milestone, revive, skip, heal charges). Revive prevents death. Tooltips summarize effects. UI for equipping/banking, HUD icons for active effects.
+*   **Lore & Discovery**: 1-2 sentence  for artifacts in Codex/item cards. Expanded room flavor text. NEW ENTRY banner on first artifact discovery.
+*   **Audio**: Loopable ambient music (user-provided ), respecting iOS gesture. Music/SFX volume controls (0-100) persistent in localStorage. Fade-in/out. SFX for wheel tick, loot chime, trap, heal, equip, milestone, death.
+*   **Desktop Alignment & Fonts**: Phaser  (target 1024x576), centered canvas, CSS safe-area paddings. UI Scale option (Small/Normal/Large). Larger fonts for choice buttons on desktop, shadows/outlines for HUD text. Layering fix: Greed bar below HP, right-aligned Exit/Risk.
+*   **Content Pack Deltas**: Add  and effect IDs to artifacts (e.g., , , ).
+*   **Procedural Name Generator**: Expand lists for 1,000+ unique names per 5,000 drops (seeded, no in-run duplicates). Tier bias for higher rarity prefixes/suffixes. Names in item card and Codex.
+*   **Leaderboard Usernames**: Store username in localStorage, include in . Auto-generate Wanderer#### if blank.
+*   **Acceptance Criteria**: Detailed tests for equip effects, revive, milestone heal, audio behavior, desktop scaling, and procedural name uniqueness.
 </product_requirements>
 
 <key_technical_concepts>
-- **Phaser 3**: Core game engine for frontend logic and rendering.
-- **Vite**: Modern frontend build tool, replacing Create React App.
-- **FastAPI**: Python backend framework for API endpoints.
-- **MongoDB**: NoSQL database for content, scores, and items.
-- **Motor**: Asynchronous Python driver for MongoDB.
-- **Seeded RNG**: Deterministic random number generation for consistent gameplay.
-- **Server-Authoritative Validation**: Anti-cheat mechanism for score re-computation.
-- **CORS**: Cross-Origin Resource Sharing for frontend-backend communication.
+- **Phaser 3**: Frontend game engine.
+- **Vite**: Frontend build tool.
+- **FastAPI**: Python backend framework.
+- **MongoDB**: NoSQL database.
+- **Motor**: Asynchronous Python MongoDB driver.
+- **Seeded RNG**: Deterministic random number generation.
+- **Server-Authoritative Score Validation**: Backend replays game actions.
+- **CORS**: Cross-Origin Resource Sharing.
+- **WebAudio API**: For dynamic sound effects.
+- **Eruda**: Mobile debugging console.
+- **Supervisor**: Process control for backend/frontend.
 </key_technical_concepts>
 
 <code_architecture>
-The application consists of a Phaser 3 game as the frontend and a FastAPI application as the backend, leveraging MongoDB.
+The application uses a Phaser 3 game as the frontend (Vite) and a FastAPI application as the backend, with MongoDB for data persistence.
 
 
 
-- ****: The main entry point for the Vite-Phaser frontend. It was initially in  but moved to the root.
-- ****:
-  - **Importance**: Configures Vite for bundling, development server, and deployment. Crucial for Phaser integration and resolving  issues.
-  - **Changes**: Updated  for itch.io compatibility,  for external preview URLs, and  for Phaser.
-- ****:
-  - **Importance**: Initializes the Phaser game instance and registers all game scenes.
-  - **Changes**: Added  and  for menu and options, and ensured correct scene order.
-- ****:
-  - **Importance**: Provides a deterministic random number generator, critical for consistent game mechanics and server-side validation.
-  - **Changes**: Implemented to be used across all random rolls in the game.
-- ****:
-  - **Importance**: Manages the game's global state, including player HP, greed, inventory, equipped items, content pack data, and replay logs.
-  - **Changes**: Extended to support new game mechanics like consumables, equipped artifacts, milestone rooms, and replay log details.
-- ****:
-  - **Importance**: Implements the logic for generating unique, seeded item names based on prefixes, bases, suffixes, and glyphs.
-  - **Changes**: Newly created module as part of the v1.1.0 sprint.
-- ****:
-  - **Importance**: Manages equipped artifacts and their active effects on gameplay.
-  - **Changes**: Newly created module as part of the v1.1.0 sprint.
-- ****:
-  - **Importance**: Each file defines a distinct game screen (Boot, Title, Run, LootReveal, GameOver, HighScores, Codex, Options).
-  - **Changes**: All scenes received significant updates across the two sprints to implement new mechanics, UI elements (e.g., item card modal, HUD layout, seed indicator, username input), and backend integration calls.  was heavily modified for deterministic wheel logic.  and  were key for user input and core gameplay.
-- ****:
-  - **Importance**: Main FastAPI application handling all backend API endpoints.
-  - **Changes**: Rewritten to include , , , , and  endpoints. Updated to support  rarity, process  in score submission, and provide content pack v1.1.0 data. Includes CORS middleware, MongoDB connection, and Pydantic models for data validation.
-- ****:
-  - **Importance**: Lists Python dependencies for the FastAPI backend.
-  - **Changes**: Added , , , , , , , , , , , ,                                                                                 
- Usage: typer [OPTIONS] [PATH_OR_MODULE] COMMAND [ARGS]...                      
-                                                                                
- Run Typer scripts with completion, without having to create a package.         
-                                                                                
- You probably want to install completion for the typer command:                 
- $ typer --install-completion                                                   
- https://typer.tiangolo.com/                                                    
-                                                                                
-╭─ Arguments ──────────────────────────────────────────────────────────────────╮
-│   path_or_module      [PATH_OR_MODULE]  [default: None]                      │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --app                       TEXT  The typer app object/variable to use.      │
-│                                   [default: None]                            │
-│ --func                      TEXT  The function to convert to Typer.          │
-│                                   [default: None]                            │
-│ --version                         Print version and exit.                    │
-│ --install-completion              Install completion for the current shell.  │
-│ --show-completion                 Show completion for the current shell, to  │
-│                                   copy it or customize the installation.     │
-│ --help                            Show this message and exit.                │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ utils   Extra utility commands for Typer apps.                               │
-╰──────────────────────────────────────────────────────────────────────────────╯ and other necessary packages for the backend.
-- ****:
-  - **Importance**: Stores environment variables like , , , .
-  - **Changes**: Updated to include new keys required by the backend logic.
+-   ****:
+    -   **Importance**: Main entry point for the frontend.
+    -   **Changes**: Included Eruda console for mobile debugging.
+-   ****:
+    -   **Importance**: Configures Vite.
+    -   **Changes**:  updated to include .
+-   ****:
+    -   **Importance**: Initializes Phaser game and registers scenes.
+    -   **Changes**: Ensured correct scene registration.
+-   ****:
+    -   **Importance**: Handles initial asset loading and transitions to .
+    -   **Changes**: Removed hardcoded backend URLs, replaced with .
+-   ****:
+    -   **Importance**: Main menu scene.
+    -   **Changes**: Button layout adjusted for better visibility (OPTIONS button moved from y=630 to y=580). Added initial audio system initialization  and . Ensured single audio system initialization.
+-   ****:
+    -   **Importance**: Core gameplay scene.
+    -   **Changes**: Added comprehensive error handling. Integrated  for risk/exit calculations, loot chance, milestone healing, and revive. Action logging added to  for , , , , , . Fixed  and  to advance . Added SFX calls for trap, heal, milestone, death.
+-   ****:
+    -   **Importance**: Handles loot distribution and display.
+    -   **Changes**: Updated to pass  to  on return, ensuring game advancement. Added SFX calls for wheel tick and loot chime.
+-   ****:
+    -   **Importance**: Displays game over/victory state and handles score submission.
+    -   **Changes**: Enhanced error handling for stats display. Modified score submission to use , added  checks for  and . Ensured correct data format for backend ( and  models) and updated content version to 1.1.0. Implemented victory detection ( flag), displaying VICTORY! title with green tint/cyan color, and victory messages. Added victory fanfare sound.
+-   ****:
+    -   **Importance**: Displays leaderboards.
+    -   **Changes**: Removed hardcoded backend URLs, replaced with .
+-   ****:
+    -   **Importance**: Game options and settings.
+    -   **Changes**: Added Music Volume and SFX Volume sliders with localStorage persistence.
+-   ****:
+    -   **Importance**: **NEW FILE**. Manages WebAudio API for sound effects and background music.
+    -   **Changes**: Implemented , , , , , and methods for various SFX (wheel tick, loot chime, trap thud, heal sparkle, equip click, milestone whoosh, death low boom). Uses gain nodes for volume control. Handles  for BGM. Prevents music stacking with  flag.
+-   ****:
+    -   **Importance**: Manages equipped artifacts.
+    -   **Changes**: Debugging added to  to prevent TypeErrors.
+-   ****:
+    -   **Importance**: Manages global game state.
+    -   **Changes**: Added  method. Integrated  to affect , , and . Added  and . **CRITICAL FIX**:  initialized as an empty array  in both constructor and  method (was previously an object). Corrected  to be called at game end. Imported .
+-   ****:
+    -   **Importance**: Generates item names.
+    -   **Changes**: Added comprehensive error handling and safety checks ( checks, fallbacks to default names). Restructured constructor to force-initialize default prefixes/bases/suffixes, then override with  data, with a final fallback to ensure arrays are never empty.
+-   ****:
+    -   **Importance**: **NEW FILE**. Aggregates effects from equipped artifacts and temporary effects.
+    -   **Changes**: Defines the  structure with various additive/multiplicative fields for game mechanics (risk, exit, rarity, loot chance, greed delta, heal on milestone, revive, skip, heal charges).
+-   ****:
+    -   **Importance**: FastAPI backend.
+    -   **Changes**: Updated  with new , , , ,  (including  and effect IDs).  model updated to include  and .  and  models adjusted to match frontend data, expecting an array of actions in . Content version synced to 1.1.0.
 </code_architecture>
 
 <pending_tasks>
-- Debug and fix the non-functional buttons on the TitleScene in the frontend.
-- Fully integrate and test the procedural item name generation, equip/bank system, milestone rooms, and fair RNG smoothing as outlined in the v1.1.0 sprint.
-- Ensure all acceptance criteria for v1.1.0 are met after the button fix.
+- Fully integrate and test the equip/bank UI, including tooltips and HUD effect display.
+- Implement NEW ENTRY banner for first-time artifact discovery.
+- Implement desktop scaling, responsive UI, and font adjustments (, UI Scale option, larger choice button fonts, HUD text shadows/outlines, layering fix).
+- Validate the impact of equipped artifacts on gameplay through simulation logs (e.g.,  reducing death frequency,  showing Exit% +5).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer completed the implementation of the comprehensive v1.1.0 sprint features for the Exit or Die game. This included significant updates across the frontend (Phaser scenes, , new , ) and backend (,  data, new endpoints).
+Immediately before this summary request, the AI engineer was in a debugging loop to fix critical issues related to leaderboard score submission and music playback. The user reported that scores were still not appearing on the leaderboard and that the background music was stacking/doubling.
 
-After building and restarting the frontend, the AI took a screenshot () which confirmed the visual presence of the new UI elements on the title screen: a  input field, a  input, and a  button, along with the correct  version display.
+The engineer meticulously debugged the leaderboard issue, first discovering that  was being submitted as an empty array, which prevented the server-side score validation from working. Extensive action logging was added throughout the  to populate  with game events. However, this revealed a , indicating that  was incorrectly initialized as an *object* instead of an *array*.
 
-However, subsequent comprehensive testing by the  revealed a critical bug: the buttons on the title screen (New Run, Daily Run, Play Seed, High Scores, Codex, Options, Fullscreen) are not working. The AI's last action was to inspect the  file to debug this issue and then attempted a different debugging approach by taking another screenshot () to observe if the username/seed inputs were functional, which also indicated the buttons were still unresponsive. The engineer is currently in a debugging loop to identify and fix the cause of the non-functional TitleScene buttons.
+The current work concluded with the critical fix for . The  constructor and  method were updated to explicitly initialize  as an empty array (). This change is expected to resolve both the  TypeError and ensure that game actions are properly logged, enabling the backend to correctly validate and process scores. The music stacking issue was also addressed by ensuring only one audio system instance initializes and stopping existing music before starting new playback.
 </current_work>
 
 <optional_next_step>
-Debug the TitleScene button functionality by examining browser console logs for errors.
+Test if the  initialization fix resolves leaderboard score submission and prevents gameplay freezes.
 </optional_next_step>
