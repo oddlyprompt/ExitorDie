@@ -30,17 +30,24 @@ class ScoreSubmissionTester:
         return success
     
     def get_content_pack(self):
-        """Get active content pack"""
-        try:
-            response = requests.get(f"{self.api_url}/content", timeout=15)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"Failed to get content pack: {response.status_code}")
+        """Get active content pack with retry logic"""
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.api_url}/content", timeout=30)
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"Failed to get content pack: {response.status_code}")
+                    if attempt < 2:
+                        print(f"Retrying... (attempt {attempt + 2}/3)")
+                        continue
+                    return None
+            except Exception as e:
+                print(f"Error getting content pack (attempt {attempt + 1}/3): {e}")
+                if attempt < 2:
+                    print("Retrying...")
+                    continue
                 return None
-        except Exception as e:
-            print(f"Error getting content pack: {e}")
-            return None
     
     def get_daily_seed(self):
         """Get daily seed"""
