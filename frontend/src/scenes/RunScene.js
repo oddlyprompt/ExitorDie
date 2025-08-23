@@ -185,26 +185,41 @@ export class RunScene extends Phaser.Scene {
   updateHPDisplay() {
     this.hpContainer.removeAll(true);
     
-    // Add HP hearts (max 4)
+    // Add HP hearts with glow effect
     for (let i = 0; i < gameState.maxHP; i++) {
-      const heart = this.add.text(i * 20, 0, i < gameState.hp ? '♥' : '♡', {
-        fontSize: '18px',
+      const heartSize = this.getResponsiveFontSize(16, 2.2, 20);
+      const heart = this.add.text(i * 22, 0, i < gameState.hp ? '♥' : '♡', {
+        fontSize: heartSize,
         fill: i < gameState.hp ? '#ff6b6b' : '#666666',
         fontFamily: 'Courier New'
       });
+      
+      // Add subtle glow for filled hearts
+      if (i < gameState.hp) {
+        heart.setStroke('#000000', 1);
+        heart.setShadow(0, 0, '#ff6b6b', 3, true, false);
+      }
+      
       this.hpContainer.add(heart);
     }
   }
 
-  createGreedBar() {
-    this.greedContainer.removeAll(true);
+  // Remove old createGreedBar method since it's now handled by GreedBarRenderer
+  
+  /**
+   * Calculate responsive font size based on game scale
+   * @param {number} minSize - Minimum font size in pixels
+   * @param {number} vwMultiplier - Viewport width multiplier
+   * @param {number} maxSize - Maximum font size in pixels
+   * @returns {string} - Font size as string with 'px'
+   */
+  getResponsiveFontSize(minSize, vwMultiplier, maxSize) {
+    const gameWidth = this.scale.gameSize.width;
+    const scaleFactor = gameWidth / 375; // Base width of 375px
     
-    // Greed label
-    const label = this.add.text(0, 0, 'GREED:', {
-      fontSize: '12px',
-      fill: '#cccccc',
-      fontFamily: 'Courier New'
-    });
+    const calculatedSize = Math.max(minSize, Math.min(maxSize, vwMultiplier * scaleFactor * 8));
+    return `${Math.round(calculatedSize)}px`;
+  }
     
     // Greed bar background
     const barBg = this.add.rectangle(55, 0, 90, 10, 0x333333);
