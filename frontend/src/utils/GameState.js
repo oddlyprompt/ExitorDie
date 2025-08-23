@@ -294,8 +294,9 @@ export class GameState {
     this.equipSystem.applyEffects(this);
     
     // Log equip decision
-    this.replayLog.equipDecisions.push({
-      action: 'equip',
+    this.replayLog.push({
+      depth: this.depth,
+      action: 'equip_item',
       item: item.hash,
       slot: slotIndex,
       replaced: replaced ? replaced.hash : null
