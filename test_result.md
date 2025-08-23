@@ -101,3 +101,88 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Test the score submission functionality for the 'Exit or Die' game. I need to verify: 1. Test POST /api/score/submit endpoint with a valid score submission 2. Test GET /api/leaderboard endpoint to retrieve scores 3. Verify that submitted scores appear in the leaderboard"
+
+backend:
+  - task: "Score Submission API Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "POST /api/score/submit endpoint tested successfully. Accepts valid score submissions with username 'TestUser', seed '12345', version '1.1.0', daily=false, replayLog with rooms/choices/rolls/items, and items array. Returns proper response with score, placement, depth, and artifacts fields. Server-side validation working correctly."
+
+  - task: "Leaderboard API Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/leaderboard endpoint tested successfully. Returns proper JSON structure with 'rows' and 'total' fields. Each row contains username, score, depth, artifacts, day, and created_at fields. Pagination working correctly."
+
+  - task: "Daily Leaderboard API Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/leaderboard?daily=true endpoint tested successfully. Returns daily-specific leaderboard entries with proper filtering."
+
+  - task: "Score Verification in Leaderboard"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Verified that submitted scores appear correctly in the leaderboard. Score submission with username 'TestUser' and score 0 was successfully found in the leaderboard after submission."
+
+  - task: "Duplicate Submission Prevention"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Duplicate submission prevention working correctly. Server properly rejects duplicate submissions with 400 status code when the same replay digest is submitted twice."
+
+frontend:
+  # No frontend testing requested
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Score Submission API Endpoint"
+    - "Leaderboard API Endpoint"
+    - "Score Verification in Leaderboard"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: "Completed comprehensive testing of score submission functionality. All requested tests passed successfully: 1) POST /api/score/submit endpoint accepts valid submissions and returns proper response, 2) GET /api/leaderboard endpoint retrieves scores with correct structure, 3) Submitted scores appear correctly in leaderboard. Additional tests confirmed duplicate prevention and daily leaderboard functionality. Backend score submission system is fully functional."
