@@ -697,19 +697,6 @@ export class RunScene extends Phaser.Scene {
     
     return button;
   }
-    });
-    
-    button.on('pointerout', () => {
-      bg.setFillStyle(0x333333, 0.8);
-      buttonText.setScale(1);
-    });
-    
-    button.on('pointerup', () => {
-      action();
-    });
-    
-    this.roomContainer.add(button);
-  }
 
   // Milestone room actions
   milestoneContinue() {
