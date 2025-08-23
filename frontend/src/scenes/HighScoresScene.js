@@ -187,10 +187,10 @@ export class HighScoresScene extends Phaser.Scene {
   }
 
   createNavigationButtons() {
-    this.prevButton = this.createButton(90, 580, 'PREVIOUS', () => this.previousPage());
-    this.nextButton = this.createButton(285, 580, 'NEXT', () => this.nextPage());
+    this.prevButton = this.createButton(90, 560, 'PREVIOUS', () => this.previousPage());
+    this.nextButton = this.createButton(285, 560, 'NEXT', () => this.nextPage());
     
-    this.pageText = this.add.text(187.5, 580, `Page ${this.currentPage + 1}`, {
+    this.pageText = this.add.text(187.5, 560, `Page ${this.currentPage + 1}`, {
       fontSize: '12px',
       fill: '#cccccc',
       fontFamily: 'Courier New'
