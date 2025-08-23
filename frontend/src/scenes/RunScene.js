@@ -531,13 +531,12 @@ export class RunScene extends Phaser.Scene {
   }
 
   layoutChoiceButtons(choices) {
-    // Smart button layout with consistent sizing
+    // ALL buttons should be the same size for consistency
     const buttonsPerRow = 2;
     const buttonWidth = 160;
     
-    // Calculate if any buttons have descriptions to determine height
-    const hasDescriptions = choices.some(choice => choice.description);
-    const buttonHeight = hasDescriptions ? 70 : 50;
+    // Use consistent height for ALL buttons - taller to accommodate any subtext
+    const buttonHeight = 70; // Always use larger size for uniformity
     const spacing = 10;
     
     choices.forEach((choice, index) => {
@@ -555,7 +554,7 @@ export class RunScene extends Phaser.Scene {
         choice.color,
         choice.description,
         buttonWidth,
-        buttonHeight
+        buttonHeight // Always pass the same height
       );
     });
   }
