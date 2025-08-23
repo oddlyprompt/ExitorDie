@@ -303,17 +303,34 @@ export class RunScene extends Phaser.Scene {
     const exitOdds = gameState.getExitOdds();
     const deathRisk = gameState.getDeathRisk();
     
-    const exitText = this.add.text(0, 0, `EXIT:${exitOdds}%`, {
-      fontSize: '11px',
-      fill: exitOdds > 20 ? '#4ecdc4' : '#cccccc',
-      fontFamily: 'Courier New'
-    });
+    // Use responsive font size for stats
+    const statsFontSize = this.getResponsiveFontSize(10, 1.5, 14);
     
-    const riskText = this.add.text(0, 12, `RISK:${deathRisk}%`, {
-      fontSize: '11px',
-      fill: deathRisk > 35 ? '#ff6b6b' : '#cccccc',
+    // Exit percentage with color coding and glow
+    const exitColor = exitOdds > 20 ? '#4ecdc4' : '#cccccc';
+    const exitText = this.add.text(0, 0, `EXIT: ${exitOdds}%`, {
+      fontSize: statsFontSize,
+      fill: exitColor,
       fontFamily: 'Courier New'
-    });
+    }).setOrigin(1, 0);
+    
+    // Add glow effect for good exit odds
+    if (exitOdds > 20) {
+      exitText.setShadow(0, 0, '#4ecdc4', 2, true, false);
+    }
+    
+    // Risk percentage with color coding and glow
+    const riskColor = deathRisk > 35 ? '#ff6b6b' : '#cccccc';
+    const riskText = this.add.text(0, 15, `RISK: ${deathRisk}%`, {
+      fontSize: statsFontSize,
+      fill: riskColor,
+      fontFamily: 'Courier New'
+    }).setOrigin(1, 0);
+    
+    // Add glow effect for high risk
+    if (deathRisk > 35) {
+      riskText.setShadow(0, 0, '#ff6b6b', 2, true, false);
+    }
     
     this.statsContainer.add([exitText, riskText]);
   }
