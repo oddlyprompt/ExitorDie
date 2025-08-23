@@ -24,6 +24,13 @@ export class GameState {
     this.seedString = ''; // Original string seed if custom
     this.isDailyRun = false;
     this.username = this.getStoredUsername();
+    
+    // Ensure we always have a username for score submission
+    if (!this.username) {
+      this.username = this.getDisplayUsername();
+      localStorage.setItem('exit_or_die_username', this.username);
+    }
+    
     this.treasureValue = 0;
     this.roomsVisited = 0;
     this.safeRoomStreak = 0;
