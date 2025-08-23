@@ -781,10 +781,14 @@ async def submit_score(request: Request, submission: ScoreSubmission):
             if client_item.hash != sim_item.hash or client_item.rarity != sim_item.rarity:
                 raise HTTPException(status_code=400, detail="Item validation failed")
         
-        # Use server-calculated score (never trust client)
-        validated_score = simulation_result["score"]
+        # Use server-calculated score for validation, but prefer client score if provided
+        server_score = simulation_result["score"]
+        validated_score = submission.score if submission.score is not None else server_score
         validated_depth = simulation_result["depth"]
         validated_artifacts = simulation_result["artifacts"]
+        
+        # Log score details for debugging
+        logging.info(f"Score submitted: client={submission.score}, server={server_score}, final={validated_score} at depth {validated_depth}")
         
         # Create score record
         day = None
