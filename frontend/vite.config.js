@@ -8,7 +8,7 @@ export default defineConfig({
     hmr: {
       port: 3000
     },
-    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'localhost', '0.0.0.0']
+    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'roguelikebugfix.preview.emergentagent.com', 'localhost', '0.0.0.0']
   },
   preview: {
     port: 3000,
