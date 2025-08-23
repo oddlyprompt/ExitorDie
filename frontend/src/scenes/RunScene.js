@@ -220,23 +220,6 @@ export class RunScene extends Phaser.Scene {
     const calculatedSize = Math.max(minSize, Math.min(maxSize, vwMultiplier * scaleFactor * 8));
     return `${Math.round(calculatedSize)}px`;
   }
-    
-    // Greed bar background
-    const barBg = this.add.rectangle(55, 0, 90, 10, 0x333333);
-    
-    // Greed bar fill
-    const fillWidth = (gameState.greed / 10) * 90;
-    const barFill = this.add.rectangle(55 - (90 - fillWidth) / 2, 0, fillWidth, 10, 0xfeca57);
-    
-    // Greed text
-    const greedText = this.add.text(155, 0, `${gameState.greed}/10`, {
-      fontSize: '12px',
-      fill: '#feca57',
-      fontFamily: 'Courier New'
-    });
-    
-    this.greedContainer.add([label, barBg, barFill, greedText]);
-  }
 
   updateEquipmentDisplay() {
     this.equipContainer.removeAll(true);
