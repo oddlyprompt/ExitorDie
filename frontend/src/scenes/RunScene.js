@@ -584,40 +584,119 @@ export class RunScene extends Phaser.Scene {
   createChoiceButton(x, y, text, action, color = '#ffffff', description = null, width = 160, height = 50) {
     const button = this.add.container(x, y);
     
-    // Button background
-    const bg = this.add.rectangle(0, 0, width, height, 0x333333, 0.8);
+    // Adjust height if there's a description to prevent clipping
+    const adjustedHeight = description ? Math.max(height, 65) : height;
+    
+    // Button background with soft glow
+    const bg = this.add.rectangle(0, 0, width, adjustedHeight, 0x333333, 0.8);
     bg.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
     
-    // Button text
-    const fontSize = text.length > 12 ? '11px' : '13px';
-    const buttonText = this.add.text(0, description ? -8 : 0, text, {
-      fontSize: fontSize,
+    // Add subtle inner glow effect
+    const glowBg = this.add.rectangle(0, 0, width - 4, adjustedHeight - 4, 
+      Phaser.Display.Color.HexStringToColor(color).color, 0.05);
+    
+    // Calculate responsive font sizes
+    const mainFontSize = this.getResponsiveFontSize(
+      text.length > 12 ? 11 : 13, 
+      text.length > 12 ? 1.6 : 2.0, 
+      text.length > 12 ? 15 : 18
+    );
+    
+    const subFontSize = this.getResponsiveFontSize(9, 1.2, 12);
+    
+    // Main button text with better positioning
+    const textY = description ? -adjustedHeight * 0.15 : 0;
+    const buttonText = this.add.text(0, textY, text, {
+      fontSize: mainFontSize,
       fill: color,
       fontFamily: 'Courier New',
       align: 'center',
-      wordWrap: { width: width - 10 }
+      wordWrap: { width: width - 20 }
     }).setOrigin(0.5);
     
-    // Description text
+    // Add text glow effect
+    buttonText.setShadow(0, 0, color, 3, false, true);
+    
+    // Description text with proper spacing
+    let descText = null;
     if (description) {
-      const descText = this.add.text(0, 8, description, {
-        fontSize: '9px',
+      const descY = adjustedHeight * 0.2;
+      descText = this.add.text(0, descY, description, {
+        fontSize: subFontSize,
         fill: '#aaaaaa',
         fontFamily: 'Courier New',
         align: 'center',
-        wordWrap: { width: width - 10 }
+        wordWrap: { width: width - 20 }
       }).setOrigin(0.5);
-      button.add(descText);
+      
+      // Subtle glow for description
+      descText.setShadow(0, 0, '#666666', 1, false, true);
     }
     
-    button.add([bg, buttonText]);
-    button.setSize(width, height);
+    // Add all elements to button
+    const elements = [glowBg, bg, buttonText];
+    if (descText) elements.push(descText);
+    button.add(elements);
+    
+    button.setSize(width, adjustedHeight);
     button.setInteractive();
     
-    // Hover effects
+    // Enhanced hover effects with smooth transitions
     button.on('pointerover', () => {
-      bg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.2);
-      buttonText.setScale(1.05);
+      // Brighten background
+      bg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.25);
+      glowBg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.15);
+      
+      // Scale and glow effect
+      this.tweens.add({
+        targets: buttonText,
+        scaleX: 1.05,
+        scaleY: 1.05,
+        duration: 100,
+        ease: 'Power2'
+      });
+      
+      // Enhance text glow
+      buttonText.setShadow(0, 0, color, 5, false, true);
+    });
+    
+    button.on('pointerout', () => {
+      // Return to normal
+      bg.setFillStyle(0x333333, 0.8);
+      glowBg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.05);
+      
+      // Reset scale
+      this.tweens.add({
+        targets: buttonText,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 100,
+        ease: 'Power2'
+      });
+      
+      // Reset text glow
+      buttonText.setShadow(0, 0, color, 3, false, true);
+    });
+    
+    button.on('pointerup', () => {
+      // Click animation
+      this.tweens.add({
+        targets: button,
+        scaleX: 0.95,
+        scaleY: 0.95,
+        duration: 50,
+        yoyo: true,
+        ease: 'Power2',
+        onComplete: () => {
+          action();
+        }
+      });
+    });
+    
+    this.roomContainer.add(button);
+    
+    return button;
+  }
     });
     
     button.on('pointerout', () => {
