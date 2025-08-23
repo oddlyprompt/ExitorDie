@@ -100,7 +100,7 @@ export class HighScoresScene extends Phaser.Scene {
       
       if (response.ok) {
         const data = await response.json();
-        this.scores = data.scores || [];
+        this.scores = data.rows || [];
         
         this.displayScores();
         this.updateNavigationButtons();
