@@ -50,17 +50,24 @@ class ScoreSubmissionTester:
                 return None
     
     def get_daily_seed(self):
-        """Get daily seed"""
-        try:
-            response = requests.get(f"{self.api_url}/daily", timeout=15)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"Failed to get daily seed: {response.status_code}")
+        """Get daily seed with retry logic"""
+        for attempt in range(3):
+            try:
+                response = requests.get(f"{self.api_url}/daily", timeout=30)
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"Failed to get daily seed: {response.status_code}")
+                    if attempt < 2:
+                        print(f"Retrying... (attempt {attempt + 2}/3)")
+                        continue
+                    return None
+            except Exception as e:
+                print(f"Error getting daily seed (attempt {attempt + 1}/3): {e}")
+                if attempt < 2:
+                    print("Retrying...")
+                    continue
                 return None
-        except Exception as e:
-            print(f"Error getting daily seed: {e}")
-            return None
     
     def create_comprehensive_score_submission(self, content_pack, daily_info, use_daily=False):
         """Create a comprehensive test score submission with the requested structure"""
