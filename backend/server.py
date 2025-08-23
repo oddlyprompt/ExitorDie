@@ -313,6 +313,7 @@ class ScoreSubmission(BaseModel):
     seed: str
     version: str
     daily: bool
+    score: Optional[int] = None  # Allow client to provide score
     replayLog: ReplayLog
     items: List[SubmittedItem]
 
