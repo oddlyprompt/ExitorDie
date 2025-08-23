@@ -510,16 +510,14 @@ export class GameState {
     this.depth++;
     this.roomsVisited++;
     
-    this.replayLog.rooms.push({
+    // Log room visit action
+    this.replayLog.push({
       depth: this.depth,
-      type: roomType,
+      action: 'visit_room',
+      roomType: roomType,
       choice: choice,
       milestone: this.isMilestoneRoom()
     });
-    
-    if (choice) {
-      this.replayLog.choices.push(choice);
-    }
   }
   
   // Log RNG usage
