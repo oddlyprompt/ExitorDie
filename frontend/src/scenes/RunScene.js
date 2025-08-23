@@ -113,11 +113,11 @@ export class RunScene extends Phaser.Scene {
     // Initialize greed bar renderer
     this.greedBarRenderer = new GreedBarRenderer(this);
     
-    // Fixed HUD layout with proper spacing
+    // Fixed HUD layout with much more spacing
     this.hud = this.add.container(0, 0);
     
     // ==============================================
-    // TOP ROW: Hearts, Depth, Exit/Risk
+    // TOP ROW: Hearts, Depth, Exit/Risk (row 1)
     // ==============================================
     
     // HP Hearts (left side)
@@ -145,20 +145,20 @@ export class RunScene extends Phaser.Scene {
     this.updateStats();
     
     // ==============================================
-    // SECOND ROW: Greed Bar (in its own space)
+    // SECOND ROW: Greed Bar (much more spacing - row 2)
     // ==============================================
-    this.greedBarContainer = this.greedBarRenderer.createGreedBar(90, 45);
+    this.greedBarContainer = this.greedBarRenderer.createGreedBar(90, 60);
     
     // ==============================================
-    // THIRD ROW: Equipment (below greed bar)
+    // THIRD ROW: Equipment (well below greed bar - row 3)
     // ==============================================
-    this.equipContainer = this.add.container(20, 65);
+    this.equipContainer = this.add.container(20, 85);
     this.updateEquipmentDisplay();
     
     // ==============================================
-    // FOURTH ROW: Consumables (below equipment)
+    // FOURTH ROW: Consumables (below equipment - row 4)
     // ==============================================
-    this.consumablesContainer = this.add.container(20, 90);
+    this.consumablesContainer = this.add.container(20, 110);
     this.updateConsumablesDisplay();
 
     // Add all components to main HUD container
