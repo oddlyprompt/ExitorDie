@@ -575,8 +575,9 @@ export class RunScene extends Phaser.Scene {
   createChoiceButton(x, y, text, action, color = '#ffffff', description = null, width = 160, height = 50) {
     const button = this.add.container(x, y);
     
-    // Adjust height if there's a description to prevent clipping
-    const adjustedHeight = description ? Math.max(height, 65) : height;
+    // Use consistent height for all buttons, but increase if needed for subtext
+    const minHeight = 50;
+    const adjustedHeight = description ? Math.max(minHeight, 70) : minHeight;
     
     // Button background with soft glow
     const bg = this.add.rectangle(0, 0, width, adjustedHeight, 0x333333, 0.8);
@@ -586,16 +587,11 @@ export class RunScene extends Phaser.Scene {
     const glowBg = this.add.rectangle(0, 0, width - 4, adjustedHeight - 4, 
       Phaser.Display.Color.HexStringToColor(color).color, 0.05);
     
-    // Calculate responsive font sizes
-    const mainFontSize = this.getResponsiveFontSize(
-      text.length > 12 ? 11 : 13, 
-      text.length > 12 ? 1.6 : 2.0, 
-      text.length > 12 ? 15 : 18
-    );
-    
+    // Use consistent font sizes for better button uniformity
+    const mainFontSize = this.getResponsiveFontSize(12, 1.8, 16);
     const subFontSize = this.getResponsiveFontSize(9, 1.2, 12);
     
-    // Main button text with better positioning
+    // Main button text - always centered for buttons without subtext
     const textY = description ? -adjustedHeight * 0.15 : 0;
     const buttonText = this.add.text(0, textY, text, {
       fontSize: mainFontSize,
@@ -606,9 +602,9 @@ export class RunScene extends Phaser.Scene {
     }).setOrigin(0.5);
     
     // Add text glow effect
-    buttonText.setShadow(0, 0, color, 3, false, true);
+    buttonText.setShadow(0, 0, color, 2, false, true);
     
-    // Description text with proper spacing
+    // Description text with proper spacing - only if description exists
     let descText = null;
     if (description) {
       const descY = adjustedHeight * 0.2;
@@ -641,14 +637,14 @@ export class RunScene extends Phaser.Scene {
       // Scale and glow effect
       this.tweens.add({
         targets: buttonText,
-        scaleX: 1.05,
-        scaleY: 1.05,
+        scaleX: 1.03,
+        scaleY: 1.03,
         duration: 100,
         ease: 'Power2'
       });
       
       // Enhance text glow
-      buttonText.setShadow(0, 0, color, 5, false, true);
+      buttonText.setShadow(0, 0, color, 4, false, true);
     });
     
     button.on('pointerout', () => {
@@ -666,7 +662,7 @@ export class RunScene extends Phaser.Scene {
       });
       
       // Reset text glow
-      buttonText.setShadow(0, 0, color, 3, false, true);
+      buttonText.setShadow(0, 0, color, 2, false, true);
     });
     
     button.on('pointerup', () => {
