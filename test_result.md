@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the score submission functionality for the 'Exit or Die' game. I need to verify: 1. Test POST /api/score/submit endpoint with a valid score submission 2. Test GET /api/leaderboard endpoint to retrieve scores 3. Verify that submitted scores appear in the leaderboard"
+user_problem_statement: "Test the UI improvements I made to the 'Exit or Die' game. I've fixed several critical UI issues: 1. Greed bar overlap - moved it to its own row to prevent overlapping with equipment text 2. Button size consistency - ensured all buttons have uniform sizing regardless of subtext 3. HUD layout improvements - restructured to prevent element stacking. Can you help me test the game functionality by: 1. Starting a new game and checking that the HUD displays properly (hearts, depth, greed bar, equipment text all in separate spaces without overlap) 2. Playing through a few rooms to test button interactions and sizing consistency 3. Verifying that the greed bar appears in its own space and doesn't cover other UI elements"
 
 backend:
   - task: "Score Submission API Endpoint"
