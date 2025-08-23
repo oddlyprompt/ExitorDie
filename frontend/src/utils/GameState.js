@@ -533,7 +533,11 @@ export class GameState {
   
   // Add item to replay log
   recordItem(itemHash) {
-    this.replayLog.items.push(itemHash);
+    this.replayLog.push({
+      depth: this.depth,
+      action: 'record_item',
+      itemHash: itemHash
+    });
   }
 
   // Get seed display (last 4 chars)
