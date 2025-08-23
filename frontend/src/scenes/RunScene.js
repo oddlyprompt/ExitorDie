@@ -577,24 +577,23 @@ export class RunScene extends Phaser.Scene {
   createChoiceButton(x, y, text, action, color = '#ffffff', description = null, width = 160, height = 50) {
     const button = this.add.container(x, y);
     
-    // Use consistent height for all buttons, but increase if needed for subtext
-    const minHeight = 50;
-    const adjustedHeight = description ? Math.max(minHeight, 70) : minHeight;
+    // Use the height parameter directly - no more dynamic sizing
+    const buttonHeight = height;
     
     // Button background with soft glow
-    const bg = this.add.rectangle(0, 0, width, adjustedHeight, 0x333333, 0.8);
+    const bg = this.add.rectangle(0, 0, width, buttonHeight, 0x333333, 0.8);
     bg.setStrokeStyle(2, Phaser.Display.Color.HexStringToColor(color).color);
     
     // Add subtle inner glow effect
-    const glowBg = this.add.rectangle(0, 0, width - 4, adjustedHeight - 4, 
+    const glowBg = this.add.rectangle(0, 0, width - 4, buttonHeight - 4, 
       Phaser.Display.Color.HexStringToColor(color).color, 0.05);
     
-    // Use consistent font sizes for better button uniformity
+    // Use consistent font sizes for all buttons
     const mainFontSize = this.getResponsiveFontSize(12, 1.8, 16);
     const subFontSize = this.getResponsiveFontSize(9, 1.2, 12);
     
-    // Main button text - always centered for buttons without subtext
-    const textY = description ? -adjustedHeight * 0.15 : 0;
+    // Main button text - center vertically if no description, otherwise move up
+    const textY = description ? -buttonHeight * 0.15 : 0;
     const buttonText = this.add.text(0, textY, text, {
       fontSize: mainFontSize,
       fill: color,
@@ -606,10 +605,10 @@ export class RunScene extends Phaser.Scene {
     // Add text glow effect
     buttonText.setShadow(0, 0, color, 2, false, true);
     
-    // Description text with proper spacing - only if description exists
+    // Description text - only if description exists
     let descText = null;
     if (description) {
-      const descY = adjustedHeight * 0.2;
+      const descY = buttonHeight * 0.2;
       descText = this.add.text(0, descY, description, {
         fontSize: subFontSize,
         fill: '#aaaaaa',
@@ -627,16 +626,14 @@ export class RunScene extends Phaser.Scene {
     if (descText) elements.push(descText);
     button.add(elements);
     
-    button.setSize(width, adjustedHeight);
+    button.setSize(width, buttonHeight);
     button.setInteractive();
     
-    // Enhanced hover effects with smooth transitions
+    // Enhanced hover effects
     button.on('pointerover', () => {
-      // Brighten background
       bg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.25);
       glowBg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.15);
       
-      // Scale and glow effect
       this.tweens.add({
         targets: buttonText,
         scaleX: 1.03,
@@ -645,16 +642,13 @@ export class RunScene extends Phaser.Scene {
         ease: 'Power2'
       });
       
-      // Enhance text glow
       buttonText.setShadow(0, 0, color, 4, false, true);
     });
     
     button.on('pointerout', () => {
-      // Return to normal
       bg.setFillStyle(0x333333, 0.8);
       glowBg.setFillStyle(Phaser.Display.Color.HexStringToColor(color).color, 0.05);
       
-      // Reset scale
       this.tweens.add({
         targets: buttonText,
         scaleX: 1,
@@ -663,12 +657,10 @@ export class RunScene extends Phaser.Scene {
         ease: 'Power2'
       });
       
-      // Reset text glow
       buttonText.setShadow(0, 0, color, 2, false, true);
     });
     
     button.on('pointerup', () => {
-      // Click animation
       this.tweens.add({
         targets: button,
         scaleX: 0.95,
