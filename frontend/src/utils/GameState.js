@@ -522,7 +522,11 @@ export class GameState {
   
   // Log RNG usage
   consumeRoll() {
-    this.replayLog.rolls++;
+    // Log RNG consumption action
+    this.replayLog.push({
+      action: 'consume_roll',
+      depth: this.depth
+    });
   }
   
   // Add item to replay log
