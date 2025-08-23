@@ -531,10 +531,13 @@ export class RunScene extends Phaser.Scene {
   }
 
   layoutChoiceButtons(choices) {
-    // Smart button layout
+    // Smart button layout with consistent sizing
     const buttonsPerRow = 2;
     const buttonWidth = 160;
-    const buttonHeight = 50;
+    
+    // Calculate if any buttons have descriptions to determine height
+    const hasDescriptions = choices.some(choice => choice.description);
+    const buttonHeight = hasDescriptions ? 70 : 50;
     const spacing = 10;
     
     choices.forEach((choice, index) => {
