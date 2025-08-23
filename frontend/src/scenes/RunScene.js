@@ -3,6 +3,7 @@ import { gameRNG } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
 import { audioSystem } from '../utils/AudioSystem.js';
 import { runModifiers } from '../utils/RunModifiers.js';
+import { GreedBarRenderer } from '../utils/greedBar.js';
 
 export class RunScene extends Phaser.Scene {
   constructor() {
