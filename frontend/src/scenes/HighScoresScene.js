@@ -131,7 +131,7 @@ export class HighScoresScene extends Phaser.Scene {
     }
 
     // Headers
-    const headers = this.add.text(20, 140, 'RANK  PLAYER           SCORE  DEPTH', {
+    const headers = this.add.text(20, 140, 'RANK  PLAYER               SCORE  DEPTH', {
       fontSize: '10px',
       fill: '#cccccc',
       fontFamily: 'Courier New'
@@ -147,12 +147,12 @@ export class HighScoresScene extends Phaser.Scene {
       const isCurrentUser = score.username === gameState.username;
       const color = isCurrentUser ? '#4ecdc4' : '#ffffff';
       
-      // Format username (truncate if too long)
-      const username = score.username.length > 12 ? 
-        score.username.substring(0, 12) + '...' : 
+      // Format username (truncate if too long but allow more space)
+      const username = score.username.length > 16 ? 
+        score.username.substring(0, 16) + '...' : 
         score.username;
       
-      const scoreText = `${rank.toString().padStart(2, ' ')}    ${username.padEnd(15, ' ')} ${score.score.toString().padStart(5, ' ')}   ${score.depth.toString().padStart(2, ' ')}`;
+      const scoreText = `${rank.toString().padStart(2, ' ')}    ${username.padEnd(19, ' ')} ${score.score.toString().padStart(5, ' ')}   ${score.depth.toString().padStart(2, ' ')}`;
       
       const entry = this.add.text(20, y, scoreText, {
         fontSize: '10px',
