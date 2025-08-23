@@ -310,8 +310,9 @@ export class GameState {
     this.treasureValue += item.value;
     
     // Log bank decision
-    this.replayLog.equipDecisions.push({
-      action: 'bank',
+    this.replayLog.push({
+      depth: this.depth,
+      action: 'bank_item',
       item: item.hash,
       value: item.value
     });
