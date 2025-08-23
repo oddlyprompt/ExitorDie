@@ -113,70 +113,61 @@ export class RunScene extends Phaser.Scene {
     // Initialize greed bar renderer
     this.greedBarRenderer = new GreedBarRenderer(this);
     
-    // Fixed HUD layout with 3-column grid structure
+    // Fixed HUD layout with proper spacing
     this.hud = this.add.container(0, 0);
     
     // ==============================================
-    // LEFT COLUMN: Hearts + Greed Bar
+    // TOP ROW: Hearts, Depth, Exit/Risk
     // ==============================================
-    this.leftColumn = this.add.container(20, 20);
     
-    // HP Hearts container
-    this.hpContainer = this.add.container(0, 0);
+    // HP Hearts (left side)
+    this.hpContainer = this.add.container(20, 20);
     this.updateHPDisplay();
-    this.leftColumn.add(this.hpContainer);
     
-    // Greed bar positioned below hearts
-    this.greedBarContainer = this.greedBarRenderer.createGreedBar(70, 25);
-    this.leftColumn.add(this.greedBarContainer);
-    
-    // ==============================================
-    // CENTER COLUMN: Depth + Seed Badge
-    // ==============================================
-    this.centerColumn = this.add.container(187.5, 20);
-    
-    // Depth display with responsive font
+    // Depth display (center)
     const depthFontSize = this.getResponsiveFontSize(14, 2.0, 18);
-    this.depthText = this.add.text(0, 0, `DEPTH: ${gameState.depth}`, {
+    this.depthText = this.add.text(187.5, 20, `DEPTH: ${gameState.depth}`, {
       fontSize: depthFontSize,
       fill: '#cccccc',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
-    // Seed badge with smaller responsive font
+    // Seed badge (center, below depth)
     const seedFontSize = this.getResponsiveFontSize(10, 1.5, 14);
-    this.seedText = this.add.text(0, 18, `🎲 ${gameState.getSeedDisplay()}`, {
+    this.seedText = this.add.text(187.5, 38, `🎲 ${gameState.getSeedDisplay()}`, {
       fontSize: seedFontSize,
       fill: '#888888',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
-    this.centerColumn.add([this.depthText, this.seedText]);
-    
-    // ==============================================
-    // RIGHT COLUMN: Exit % + Risk %
-    // ==============================================
-    this.rightColumn = this.add.container(355, 20);
-    this.statsContainer = this.add.container(0, 0);
+    // Exit/Risk stats (right side)
+    this.statsContainer = this.add.container(320, 20);
     this.updateStats();
-    this.rightColumn.add(this.statsContainer);
     
     // ==============================================
-    // SECONDARY ROWS: Equipment + Consumables
+    // SECOND ROW: Greed Bar (in its own space)
     // ==============================================
-    // Equipment display (full width, below main HUD)
-    this.equipContainer = this.add.container(20, 60);
+    this.greedBarContainer = this.greedBarRenderer.createGreedBar(90, 45);
+    
+    // ==============================================
+    // THIRD ROW: Equipment (below greed bar)
+    // ==============================================
+    this.equipContainer = this.add.container(20, 65);
     this.updateEquipmentDisplay();
     
-    // Consumables display (below equipment)
-    this.consumablesContainer = this.add.container(20, 85);
+    // ==============================================
+    // FOURTH ROW: Consumables (below equipment)
+    // ==============================================
+    this.consumablesContainer = this.add.container(20, 90);
     this.updateConsumablesDisplay();
 
     // Add all components to main HUD container
     this.hud.add([
-      this.leftColumn,
-      this.centerColumn, 
-      this.rightColumn,
+      this.hpContainer,
+      this.depthText,
+      this.seedText,
+      this.statsContainer,
+      this.greedBarContainer,
       this.equipContainer,
       this.consumablesContainer
     ]);
