@@ -233,6 +233,7 @@ export class GameOverScene extends Phaser.Scene {
         seed: (gameState.seed || Date.now()).toString(), // Convert to string
         version: "1.1.0",
         daily: gameState.isDailyRun || false,
+        score: finalScore, // Include calculated score
         replayLog: {
           seed: (gameState.seed || Date.now()).toString(),
           contentVersion: "1.1.0",
