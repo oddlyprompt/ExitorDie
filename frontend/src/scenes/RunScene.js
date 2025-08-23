@@ -1111,11 +1111,26 @@ export class RunScene extends Phaser.Scene {
   }
 
   updateHUD() {
+    // Update all HUD components
     this.updateHPDisplay();
-    this.createGreedBar();
+    
+    // Update greed bar using the new renderer
+    if (this.greedBarContainer && this.greedBarRenderer) {
+      this.greedBarRenderer.updateGreedBar(this.greedBarContainer, gameState.greed, 10);
+    }
+    
     this.updateStats();
     this.updateEquipmentDisplay();
     this.updateConsumablesDisplay();
+    
+    // Update depth text with responsive sizing
+    const depthFontSize = this.getResponsiveFontSize(14, 2.0, 18);
     this.depthText.setText(`DEPTH: ${gameState.depth}`);
+    this.depthText.setFontSize(depthFontSize);
+    
+    // Update seed text
+    const seedFontSize = this.getResponsiveFontSize(10, 1.5, 14);
+    this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
+    this.seedText.setFontSize(seedFontSize);
   }
 }
