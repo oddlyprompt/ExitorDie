@@ -13,17 +13,16 @@ export class GameState {
   }
 
   reset() {
-    // Core stats
-    this.hp = 4;
-    this.maxHP = 4;
-    this.greed = 0;
-    this.depth = 0;
-    this.score = 0;
+  // Core stats
+  this.hp = 4;
+  this.maxHP = 4;
+  this.greed = 0;
+  this.depth = 0;
+  this.score = 0;
 
-    // Run data
-    this.seed = Date.now();
-    this.seedString = ''; // Original string seed if custom
-    this.isDailyRun = false;
+  // Don't overwrite seed or seedString here
+  this.isDailyRun = false;
+
     this.username = this.getStoredUsername();
     
     // Ensure we always have a username for score submission
