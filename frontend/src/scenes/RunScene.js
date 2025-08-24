@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { gameRNG } from '../utils/SeededRNG.js';
+import { gameRNG, setSeed } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
 import { audioSystem } from '../utils/AudioSystem.js';
 import { runModifiers } from '../utils/RunModifiers.js';
