@@ -12,17 +12,20 @@ export class RunScene extends Phaser.Scene {
   }
 
   init(data = {}) {
-  // keep your existing flag logic
-  this.shouldGenerateNewRoom =
-    data && data.shouldGenerateNewRoom !== false;
+    // keep your existing flag logic
+    this.shouldGenerateNewRoom =
+      data && data.shouldGenerateNewRoom !== false;
 
-  // If TitleScene passed a seed, lock the RNG to it
-  if (typeof data.seed !== 'undefined') {
-    setSeed(data.seed);                 // apply to global RNG
-    gameState.seed = data.seed;         // store numeric seed
-    if (data.seedString) {
-      gameState.seedString = data.seedString.trim(); // keep the label the player typed
+    // If TitleScene passed a seed, lock RNG to it
+    if (typeof data.seed !== 'undefined') {
+      setSeed(data.seed);            // align global RNG
+      gameState.seed = data.seed;    // remember seed used
+      if (data.seedString) {
+        gameState.seedString = data.seedString;
+      }
     }
+
+    console.log('🎯 RunScene init – shouldGenerateNewRoom =', this.shouldGenerateNewRoom, ' seed=', gameState.seed, ' seedString=', gameState.seedString);
   }
 }
 
