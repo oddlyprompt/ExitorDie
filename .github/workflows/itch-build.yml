@@ -15,24 +15,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.branch || github.ref_name }}
 
-      - name: Setup Node
+      - name: Setup Node (no cache)
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'            # OK without a lockfile; just speeds up npm cache
 
       - name: Ensure zip is available
         run: sudo apt-get update && sudo apt-get install -y zip
 
-      # Install using package.json in frontend/ (no lockfile required)
+      # Install deps from package.json in /frontend (no lockfile required)
       - name: Install deps
         working-directory: frontend
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Build (Vite)
         working-directory: frontend
@@ -41,7 +40,7 @@ jobs:
           VITE_API_BASE: ${{ vars.VITE_API_BASE || '' }}
         run: npm run build
 
-      # Zip contents of dist so index.html is at root of the zip
+      # Zip the *contents* of dist so index.html is at the root of the zip
       - name: Create itch zip
         working-directory: frontend/dist
         run: zip -r ../../exit-or-die.zip ./*
