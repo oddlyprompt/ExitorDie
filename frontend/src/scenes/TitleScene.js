@@ -271,18 +271,14 @@ export class TitleScene extends Phaser.Scene {
   }
 
   startCustomSeed() {
-    if (!gameState.seedString) {
-      alert('Please enter a custom seed first');
-      return;
-    }
-    
-    gameState.reset();
-    gameState.isDailyRun = false;
-    
-    setSeed(gameState.seed);
-    
-    this.scene.start('RunScene');
-  }
+  const typed = (this.seedText?.text || '').trim();
+  if (!typed) { alert('Please enter a custom seed first'); return; }
+
+  gameState.reset();              // clears run stats ONLY
+  gameState.isDailyRun = false;
+  gameState.setSeedFromString(typed);  // <-- this applies the seed to RNG
+  this.scene.start('RunScene', { seed: gameState.seed, seedString: typed });
+}
 
   getDailySeed() {
     // Generate consistent daily seed based on current date
