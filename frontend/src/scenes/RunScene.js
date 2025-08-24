@@ -11,11 +11,20 @@ export class RunScene extends Phaser.Scene {
     console.log('🎯 RunScene constructor called');
   }
 
-  init(data) {
-    // Check if we should generate a new room (coming from LootRevealScene)
-    this.shouldGenerateNewRoom = data && data.generateNewRoom;
-    console.log('🎯 RunScene init - shouldGenerateNewRoom:', this.shouldGenerateNewRoom);
+  init(data = {}) {
+  // keep your existing flag logic
+  this.shouldGenerateNewRoom =
+    data && data.shouldGenerateNewRoom !== false;
+
+  // If TitleScene passed a seed, lock the RNG to it
+  if (typeof data.seed !== 'undefined') {
+    setSeed(data.seed);                 // apply to global RNG
+    gameState.seed = data.seed;         // store numeric seed
+    if (data.seedString) {
+      gameState.seedString = data.seedString.trim(); // keep the label the player typed
+    }
   }
+}
 
   create() {
     console.log('🎯 RunScene create() method called');
