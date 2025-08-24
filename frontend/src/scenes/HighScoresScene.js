@@ -1,230 +1,284 @@
 import Phaser from 'phaser';
+import { gameState } from '../utils/GameState.js';
 
 export class HighScoresScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HighScoresScene' });
+    this.currentPage = 0;
+    this.scores = [];
+    this.loading = false;
   }
 
   create() {
     // Background
     const bg = this.add.graphics();
-    bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x1a2d69, 0x1a2d69, 1);
+    bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x2d1b69, 0x2d1b69, 1);
     bg.fillRect(0, 0, 375, 667);
 
     // Title
     this.add.text(187.5, 60, 'HIGH SCORES', {
-      fontSize: '28px',
-      fill: '#feca57',
+      fontSize: '24px',
+      fill: '#ff6b6b',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
-    // Tab buttons
-    this.createTabs();
-    
-    // Scoreboard container
-    this.scoreContainer = this.add.container(187.5, 200);
-    
+    // Filter buttons
+    this.createFilterButtons();
+
+    // Scores container
+    this.scoresContainer = this.add.container(0, 0);
+
+    // Navigation buttons
+    this.createNavigationButtons();
+
+    // Back button - positioned above navigation buttons with proper spacing
+    this.createButton(187.5, 520, 'BACK TO MENU', () => this.returnToTitle());
+
     // Load initial scores
-    this.currentTab = 'global';
-    this.loadScores('global');
-    
-    // Back button
-    this.createBackButton();
+    this.loadScores();
   }
 
-  createTabs() {
-    this.tabContainer = this.add.container(187.5, 120);
+  createFilterButtons() {
+    const filters = ['ALL', 'DAILY', 'CUSTOM'];
+    const startX = 60;
+    const buttonWidth = 85;
     
-    const globalTab = this.createTab(-80, 0, 'GLOBAL', () => this.switchTab('global'));
-    const dailyTab = this.createTab(80, 0, 'DAILY', () => this.switchTab('daily'));
-    
-    this.tabContainer.add([globalTab, dailyTab]);
-    
-    // Track active tab
-    this.tabs = { global: globalTab, daily: dailyTab };
-    this.updateTabStyles();
+    this.currentFilter = 'ALL';
+    this.filterButtons = [];
+
+    filters.forEach((filter, index) => {
+      const x = startX + (index * buttonWidth);
+      const button = this.createFilterButton(x, 100, filter, () => this.setFilter(filter));
+      this.filterButtons.push({ button, filter });
+    });
+
+    this.updateFilterButtons();
   }
 
-  createTab(x, y, text, callback) {
-    const tab = this.add.container(x, y);
+  createFilterButton(x, y, text, callback) {
+    const button = this.add.container(x, y);
     
-    const bg = this.add.rectangle(0, 0, 100, 30, 0x333333, 0.8);
-    bg.setStrokeStyle(2, 0x666666);
+    const bg = this.add.rectangle(0, 0, 80, 25, 0x333333, 0.8);
+    bg.setStrokeStyle(1, 0x666666);
     
-    const tabText = this.add.text(0, 0, text, {
-      fontSize: '14px',
-      fill: '#cccccc',
+    const buttonText = this.add.text(0, 0, text, {
+      fontSize: '10px',
+      fill: '#ffffff',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
-    
-    tab.add([bg, tabText]);
-    tab.setSize(100, 30);
-    tab.setInteractive();
-    
-    tab.on('pointerup', callback);
+
+    button.add([bg, buttonText]);
+    button.setSize(80, 25);
+    button.setInteractive();
+
+    button.on('pointerup', callback);
     
     // Store references for styling
-    tab.bg = bg;
-    tab.text = tabText;
+    button.bg = bg;
+    button.text = buttonText;
+
+    return button;
+  }
+
+  async loadScores() {
+    if (this.loading) return;
     
-    return tab;
-  }
+    this.loading = true;
+    
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+      
+      let url = `${backendUrl}/api/leaderboard?page=${this.currentPage}&limit=10`;
+      
+      if (this.currentFilter === 'DAILY') {
+        url += '&daily=true';
+      } else if (this.currentFilter === 'CUSTOM') {
+        url += '&custom=true';
+      }
 
-  switchTab(tabName) {
-    this.currentTab = tabName;
-    this.updateTabStyles();
-    this.loadScores(tabName);
-  }
-
-  updateTabStyles() {
-    Object.entries(this.tabs).forEach(([name, tab]) => {
-      if (name === this.currentTab) {
-        tab.bg.setStrokeStyle(2, 0xfeca57);
-        tab.text.setColor('#feca57');
+      const response = await fetch(url);
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.scores = data.rows || [];
+        
+        this.displayScores();
+        this.updateNavigationButtons();
       } else {
-        tab.bg.setStrokeStyle(2, 0x666666);
-        tab.text.setColor('#cccccc');
+        this.displayError('Failed to load scores');
+      }
+    } catch (error) {
+      console.warn('Error loading scores:', error);
+      this.displayError('Unable to connect to server');
+    }
+    
+    this.loading = false;
+  }
+
+  displayScores() {
+    // Clear existing scores
+    this.scoresContainer.removeAll(true);
+
+    if (this.scores.length === 0) {
+      const noScores = this.add.text(187.5, 200, 'No scores found', {
+        fontSize: '14px',
+        fill: '#666666',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
+      
+      this.scoresContainer.add(noScores);
+      return;
+    }
+
+    // Headers
+    const headers = this.add.text(20, 140, 'RANK  PLAYER               SCORE  DEPTH', {
+      fontSize: '10px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    });
+    this.scoresContainer.add(headers);
+
+    // Score entries
+    this.scores.forEach((score, index) => {
+      const rank = (this.currentPage * 10) + index + 1;
+      const y = 165 + (index * 25);
+      
+      // Highlight current user's score
+      const isCurrentUser = score.username === gameState.username;
+      const color = isCurrentUser ? '#4ecdc4' : '#ffffff';
+      
+      // Format username (truncate if too long but allow more space)
+      const username = score.username.length > 16 ? 
+        score.username.substring(0, 16) + '...' : 
+        score.username;
+      
+      const scoreText = `${rank.toString().padStart(2, ' ')}    ${username.padEnd(19, ' ')} ${score.score.toString().padStart(5, ' ')}   ${score.depth.toString().padStart(2, ' ')}`;
+      
+      const entry = this.add.text(20, y, scoreText, {
+        fontSize: '10px',
+        fill: color,
+        fontFamily: 'Courier New'
+      });
+      
+      this.scoresContainer.add(entry);
+      
+      // Add seed info for custom runs
+      if (score.seedString && score.seedString !== '') {
+        const seedInfo = this.add.text(25, y + 12, `Seed: ${score.seedString}`, {
+          fontSize: '8px',
+          fill: '#888888',
+          fontFamily: 'Courier New'
+        });
+        this.scoresContainer.add(seedInfo);
       }
     });
   }
 
-  async loadScores(category) {
-    // Clear existing scores
-    this.scoreContainer.removeAll(true);
+  displayError(message) {
+    this.scoresContainer.removeAll(true);
     
-    // Loading text
-    const loadingText = this.add.text(0, 0, 'Loading scores...', {
-      fontSize: '16px',
-      fill: '#cccccc',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-    
-    this.scoreContainer.add(loadingText);
-    
-    try {
-      // Mock scores for now (will be replaced with backend API)
-      const mockScores = this.getMockScores(category);
-      
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      this.displayScores(mockScores);
-      
-    } catch (error) {
-      console.error('Failed to load scores:', error);
-      this.displayError();
-    }
-  }
-
-  getMockScores(category) {
-    // Mock leaderboard data
-    const globalScores = [
-      { rank: 1, name: 'RogueKing', score: 15420, depth: 24, artifacts: 8 },
-      { rank: 2, name: 'DeepDelver', score: 12850, depth: 21, artifacts: 6 },
-      { rank: 3, name: 'LootHunter', score: 11200, depth: 19, artifacts: 7 },
-      { rank: 4, name: 'ExitMaster', score: 9780, depth: 18, artifacts: 5 },
-      { rank: 5, name: 'GreedyOne', score: 8950, depth: 16, artifacts: 4 },
-      { rank: 6, name: 'ShadowWalk', score: 7340, depth: 15, artifacts: 3 },
-      { rank: 7, name: 'TreasureSeeker', score: 6890, depth: 14, artifacts: 5 },
-      { rank: 8, name: 'DungeonDiver', score: 5420, depth: 12, artifacts: 2 },
-      { rank: 9, name: 'RiskTaker', score: 4200, depth: 11, artifacts: 3 },
-      { rank: 10, name: 'Survivor', score: 3150, depth: 9, artifacts: 1 }
-    ];
-
-    const dailyScores = [
-      { rank: 1, name: 'DailyChamp', score: 8750, depth: 16, artifacts: 4 },
-      { rank: 2, name: 'MorningRun', score: 7200, depth: 14, artifacts: 3 },
-      { rank: 3, name: 'SpeedRunner', score: 6100, depth: 13, artifacts: 2 },
-      { rank: 4, name: 'Challenger', score: 5400, depth: 12, artifacts: 3 },
-      { rank: 5, name: 'DailyGrind', score: 4800, depth: 11, artifacts: 2 }
-    ];
-
-    return category === 'global' ? globalScores : dailyScores;
-  }
-
-  displayScores(scores) {
-    this.scoreContainer.removeAll(true);
-    
-    // Header
-    const header = this.add.text(0, -150, 'RANK  NAME            SCORE    DEPTH  ARTIFACTS', {
-      fontSize: '12px',
-      fill: '#666666',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-    
-    this.scoreContainer.add(header);
-    
-    // Score entries
-    scores.forEach((entry, index) => {
-      const y = -120 + (index * 25);
-      
-      // Rank color based on position
-      let rankColor = '#cccccc';
-      if (entry.rank === 1) rankColor = '#feca57';
-      else if (entry.rank === 2) rankColor = '#c0c0c0';
-      else if (entry.rank === 3) rankColor = '#cd7f32';
-      
-      const scoreText = this.add.text(0, y, 
-        `${entry.rank.toString().padStart(2, ' ')}    ${entry.name.padEnd(12, ' ')} ${entry.score.toString().padStart(8, ' ')}   ${entry.depth.toString().padStart(2, ' ')}     ${entry.artifacts}`, {
-        fontSize: '12px',
-        fill: rankColor,
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      
-      this.scoreContainer.add(scoreText);
-    });
-    
-    // Pagination (placeholder)
-    const pageInfo = this.add.text(0, 200, 'Page 1 of 10', {
-      fontSize: '12px',
-      fill: '#666666',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-    
-    this.scoreContainer.add(pageInfo);
-  }
-
-  displayError() {
-    this.scoreContainer.removeAll(true);
-    
-    const errorText = this.add.text(0, 0, 'Failed to load scores.\nCheck your connection.', {
-      fontSize: '16px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New',
-      align: 'center'
-    }).setOrigin(0.5);
-    
-    this.scoreContainer.add(errorText);
-  }
-
-  createBackButton() {
-    const backButton = this.add.container(60, 600);
-    
-    const bg = this.add.rectangle(0, 0, 100, 35, 0x333333, 0.8);
-    bg.setStrokeStyle(2, 0xff6b6b);
-    
-    const buttonText = this.add.text(0, 0, 'BACK', {
+    const errorText = this.add.text(187.5, 200, message, {
       fontSize: '14px',
       fill: '#ff6b6b',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
     
-    backButton.add([bg, buttonText]);
-    backButton.setSize(100, 35);
-    backButton.setInteractive();
+    this.scoresContainer.add(errorText);
+  }
+
+  createNavigationButtons() {
+    this.prevButton = this.createButton(90, 560, 'PREVIOUS', () => this.previousPage());
+    this.nextButton = this.createButton(285, 560, 'NEXT', () => this.nextPage());
     
-    backButton.on('pointerover', () => {
-      bg.setFillStyle(0xff6b6b, 0.2);
+    this.pageText = this.add.text(187.5, 560, `Page ${this.currentPage + 1}`, {
+      fontSize: '12px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+  }
+
+  updateNavigationButtons() {
+    // Update page text
+    this.pageText.setText(`Page ${this.currentPage + 1}`);
+    
+    // Enable/disable buttons based on data
+    const hasPrevious = this.currentPage > 0;
+    const hasNext = this.scores.length === 10; // Full page suggests more data
+    
+    this.prevButton.setAlpha(hasPrevious ? 1 : 0.5);
+    this.nextButton.setAlpha(hasNext ? 1 : 0.5);
+  }
+
+  setFilter(filter) {
+    if (this.currentFilter === filter || this.loading) return;
+    
+    this.currentFilter = filter;
+    this.currentPage = 0;
+    this.updateFilterButtons();
+    this.loadScores();
+  }
+
+  updateFilterButtons() {
+    this.filterButtons.forEach(({ button, filter }) => {
+      const isActive = filter === this.currentFilter;
+      button.bg.setFillStyle(isActive ? 0xff6b6b : 0x333333, 0.8);
+      button.bg.setStrokeStyle(1, isActive ? 0xff6b6b : 0x666666);
+    });
+  }
+
+  previousPage() {
+    if (this.currentPage > 0 && !this.loading) {
+      this.currentPage--;
+      this.loadScores();
+    }
+  }
+
+  nextPage() {
+    if (this.scores.length === 10 && !this.loading) { // Full page suggests more data
+      this.currentPage++;
+      this.loadScores();
+    }
+  }
+
+  createButton(x, y, text, callback) {
+    const button = this.add.container(x, y);
+    
+    const bg = this.add.rectangle(0, 0, 120, 30, 0x333333, 0.8);
+    bg.setStrokeStyle(2, 0xff6b6b);
+    
+    const buttonText = this.add.text(0, 0, text, {
+      fontSize: '12px',
+      fill: '#ffffff',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    button.add([bg, buttonText]);
+    button.setSize(120, 30);
+    button.setInteractive();
+
+    button.on('pointerover', () => {
+      bg.setFillStyle(0xff6b6b, 0.3);
       buttonText.setScale(1.05);
     });
-    
-    backButton.on('pointerout', () => {
+
+    button.on('pointerout', () => {
       bg.setFillStyle(0x333333, 0.8);
       buttonText.setScale(1);
     });
-    
-    backButton.on('pointerup', () => {
-      this.scene.start('TitleScene');
+
+    button.on('pointerdown', () => {
+      buttonText.setScale(0.95);
     });
+
+    button.on('pointerup', () => {
+      buttonText.setScale(1.05);
+      callback();
+    });
+
+    return button;
+  }
+
+  returnToTitle() {
+    this.scene.start('TitleScene');
   }
 }

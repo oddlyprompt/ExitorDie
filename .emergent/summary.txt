@@ -1,0 +1,109 @@
+<analysis>
+The AI engineer's work trajectory is a detailed account of bug fixing, refactoring, and feature implementation for the Exit or Die game. Initially, the engineer resolved critical frontend loading issues, including a host blocking error and a tricky timing-related bug in the TitleScene. A significant portion of the work involved diagnosing and fixing core gameplay mechanics: non-functional buttons, missing room content (due to a missing  method), broken milestone room advancement (due to depth not updating), and a complete overhaul of the procedural item name generation logic (addressing empty data arrays). The engineer then tackled crucial backend integration issues related to score submission, accurately matching frontend data with backend Pydantic models, and correctly populating the  for server-side score validation. Finally, a comprehensive audio system with volume controls and background music was implemented and debugged, alongside numerous small bug fixes and debugging enhancements (e.g., Eruda console). The latest fix addressed a  where  was an object instead of an array.
+</analysis>
+
+<product_requirements>
+The goal is to develop Exit or Die, a mobile-first, browser-based roguelike using Phaser 3 (frontend) and FastAPI/MongoDB (backend). Key features include seven game scenes, core mechanics (HP, Greed, deterministic RNG, loot system, room modifiers), and backend integration for content packs, daily seeds, paginated leaderboards, and server-authoritative score validation via replay logs.
+
+**Implemented Features (v1.0.2 & v1.1.0 sprints):**
+*   **Core Polish**: Deterministic roulette wheel, item card pop-ups, procedural flavor text, refined game balance (room target, HP, curves, pity system), and consumables (Smoke Bomb, Field Bandage).
+*   **v1.1.0 Sprint**: Main menu (username, custom seed, play seed button), Safe first two rooms, death-risk smoothing, milestone rooms (boosted drops, forks), equip/bank system for artifacts, procedural item naming (1000+ combinations), HUD cleanup, backend adjustments for username, custom seeds, content pack v1.1.0.
+
+**New Sprint Requirements (Equip Effects, Lore & Audio, Desktop Alignment):**
+*   **Equip System**: Two equip slots (E1, E2) wired into  for additive/multiplicative effects (risk, exit, rarity, loot chance, greed delta, heal on milestone, revive, skip, heal charges). Revive prevents death. Tooltips summarize effects. UI for equipping/banking, HUD icons for active effects.
+*   **Lore & Discovery**: 1-2 sentence  for artifacts in Codex/item cards. Expanded room flavor text. NEW ENTRY banner on first artifact discovery.
+*   **Audio**: Loopable ambient music (user-provided ), respecting iOS gesture. Music/SFX volume controls (0-100) persistent in localStorage. Fade-in/out. SFX for wheel tick, loot chime, trap, heal, equip, milestone, death.
+*   **Desktop Alignment & Fonts**: Phaser  (target 1024x576), centered canvas, CSS safe-area paddings. UI Scale option (Small/Normal/Large). Larger fonts for choice buttons on desktop, shadows/outlines for HUD text. Layering fix: Greed bar below HP, right-aligned Exit/Risk.
+*   **Content Pack Deltas**: Add  and effect IDs to artifacts (e.g., , , ).
+*   **Procedural Name Generator**: Expand lists for 1,000+ unique names per 5,000 drops (seeded, no in-run duplicates). Tier bias for higher rarity prefixes/suffixes. Names in item card and Codex.
+*   **Leaderboard Usernames**: Store username in localStorage, include in . Auto-generate Wanderer#### if blank.
+*   **Acceptance Criteria**: Detailed tests for equip effects, revive, milestone heal, audio behavior, desktop scaling, and procedural name uniqueness.
+</product_requirements>
+
+<key_technical_concepts>
+- **Phaser 3**: Frontend game engine.
+- **Vite**: Frontend build tool.
+- **FastAPI**: Python backend framework.
+- **MongoDB**: NoSQL database.
+- **Motor**: Asynchronous Python MongoDB driver.
+- **Seeded RNG**: Deterministic random number generation.
+- **Server-Authoritative Score Validation**: Backend replays game actions.
+- **CORS**: Cross-Origin Resource Sharing.
+- **WebAudio API**: For dynamic sound effects.
+- **Eruda**: Mobile debugging console.
+- **Supervisor**: Process control for backend/frontend.
+</key_technical_concepts>
+
+<code_architecture>
+The application uses a Phaser 3 game as the frontend (Vite) and a FastAPI application as the backend, with MongoDB for data persistence.
+
+
+
+-   ****:
+    -   **Importance**: Main entry point for the frontend.
+    -   **Changes**: Included Eruda console for mobile debugging.
+-   ****:
+    -   **Importance**: Configures Vite.
+    -   **Changes**:  updated to include .
+-   ****:
+    -   **Importance**: Initializes Phaser game and registers scenes.
+    -   **Changes**: Ensured correct scene registration.
+-   ****:
+    -   **Importance**: Handles initial asset loading and transitions to .
+    -   **Changes**: Removed hardcoded backend URLs, replaced with .
+-   ****:
+    -   **Importance**: Main menu scene.
+    -   **Changes**: Button layout adjusted for better visibility (OPTIONS button moved from y=630 to y=580). Added initial audio system initialization  and . Ensured single audio system initialization.
+-   ****:
+    -   **Importance**: Core gameplay scene.
+    -   **Changes**: Added comprehensive error handling. Integrated  for risk/exit calculations, loot chance, milestone healing, and revive. Action logging added to  for , , , , , . Fixed  and  to advance . Added SFX calls for trap, heal, milestone, death.
+-   ****:
+    -   **Importance**: Handles loot distribution and display.
+    -   **Changes**: Updated to pass  to  on return, ensuring game advancement. Added SFX calls for wheel tick and loot chime.
+-   ****:
+    -   **Importance**: Displays game over/victory state and handles score submission.
+    -   **Changes**: Enhanced error handling for stats display. Modified score submission to use , added  checks for  and . Ensured correct data format for backend ( and  models) and updated content version to 1.1.0. Implemented victory detection ( flag), displaying VICTORY! title with green tint/cyan color, and victory messages. Added victory fanfare sound.
+-   ****:
+    -   **Importance**: Displays leaderboards.
+    -   **Changes**: Removed hardcoded backend URLs, replaced with .
+-   ****:
+    -   **Importance**: Game options and settings.
+    -   **Changes**: Added Music Volume and SFX Volume sliders with localStorage persistence.
+-   ****:
+    -   **Importance**: **NEW FILE**. Manages WebAudio API for sound effects and background music.
+    -   **Changes**: Implemented , , , , , and methods for various SFX (wheel tick, loot chime, trap thud, heal sparkle, equip click, milestone whoosh, death low boom). Uses gain nodes for volume control. Handles  for BGM. Prevents music stacking with  flag.
+-   ****:
+    -   **Importance**: Manages equipped artifacts.
+    -   **Changes**: Debugging added to  to prevent TypeErrors.
+-   ****:
+    -   **Importance**: Manages global game state.
+    -   **Changes**: Added  method. Integrated  to affect , , and . Added  and . **CRITICAL FIX**:  initialized as an empty array  in both constructor and  method (was previously an object). Corrected  to be called at game end. Imported .
+-   ****:
+    -   **Importance**: Generates item names.
+    -   **Changes**: Added comprehensive error handling and safety checks ( checks, fallbacks to default names). Restructured constructor to force-initialize default prefixes/bases/suffixes, then override with  data, with a final fallback to ensure arrays are never empty.
+-   ****:
+    -   **Importance**: **NEW FILE**. Aggregates effects from equipped artifacts and temporary effects.
+    -   **Changes**: Defines the  structure with various additive/multiplicative fields for game mechanics (risk, exit, rarity, loot chance, greed delta, heal on milestone, revive, skip, heal charges).
+-   ****:
+    -   **Importance**: FastAPI backend.
+    -   **Changes**: Updated  with new , , , ,  (including  and effect IDs).  model updated to include  and .  and  models adjusted to match frontend data, expecting an array of actions in . Content version synced to 1.1.0.
+</code_architecture>
+
+<pending_tasks>
+- Fully integrate and test the equip/bank UI, including tooltips and HUD effect display.
+- Implement NEW ENTRY banner for first-time artifact discovery.
+- Implement desktop scaling, responsive UI, and font adjustments (, UI Scale option, larger choice button fonts, HUD text shadows/outlines, layering fix).
+- Validate the impact of equipped artifacts on gameplay through simulation logs (e.g.,  reducing death frequency,  showing Exit% +5).
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the AI engineer was in a debugging loop to fix critical issues related to leaderboard score submission and music playback. The user reported that scores were still not appearing on the leaderboard and that the background music was stacking/doubling.
+
+The engineer meticulously debugged the leaderboard issue, first discovering that  was being submitted as an empty array, which prevented the server-side score validation from working. Extensive action logging was added throughout the  to populate  with game events. However, this revealed a , indicating that  was incorrectly initialized as an *object* instead of an *array*.
+
+The current work concluded with the critical fix for . The  constructor and  method were updated to explicitly initialize  as an empty array (). This change is expected to resolve both the  TypeError and ensure that game actions are properly logged, enabling the backend to correctly validate and process scores. The music stacking issue was also addressed by ensuring only one audio system instance initializes and stopping existing music before starting new playback.
+</current_work>
+
+<optional_next_step>
+Test if the  initialization fix resolves leaderboard score submission and prevents gameplay freezes.
+</optional_next_step>

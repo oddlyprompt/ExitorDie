@@ -4,13 +4,18 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './', // needed so the dist/ zip works on itch.io
   server: {
-    host: true,        // listen on all interfaces
-    allowedHosts: true // allow any host in dev (incl. *.preview.emergentagent.com)
+    port: 3000,
+    host: '0.0.0.0',
+    hmr: {
+      port: 3000
+    },
+    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'roguelikebugfix.preview.emergentagent.com', 'localhost', '0.0.0.0']
   },
   preview: {
     host: true,
     port: 3000,
-    allowedHosts: true // critical for Emergent preview host
+    host: '0.0.0.0',
+    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'roguelikebugfix.preview.emergentagent.com', 'localhost', '0.0.0.0']
   },
   build: {
     outDir: 'dist',

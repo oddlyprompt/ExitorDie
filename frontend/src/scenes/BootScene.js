@@ -57,24 +57,31 @@ export class BootScene extends Phaser.Scene {
   async create() {
     // Try to fetch content pack from backend
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
       
-      // Fetch content pack (when backend is ready)
-      // const contentResponse = await fetch(`${backendUrl}/api/content`);
-      // if (contentResponse.ok) {
-      //   const contentPack = await contentResponse.json();
-      //   gameState.contentPack = contentPack;
-      // }
+      // Fetch content pack
+      console.log('Fetching content pack from backend...');
+      const contentResponse = await fetch(`${backendUrl}/api/content`);
+      if (contentResponse.ok) {
+        const contentPack = await contentResponse.json();
+        gameState.contentPack = contentPack;
+        console.log('Content pack loaded:', contentPack.version);
+      } else {
+        console.warn('Failed to load content pack, using defaults');
+      }
 
-      // Fetch daily seed (when backend is ready)
-      // const dailyResponse = await fetch(`${backendUrl}/api/daily`);
-      // if (dailyResponse.ok) {
-      //   const dailyData = await dailyResponse.json();
-      //   gameState.dailySeed = dailyData.seed;
-      // }
+      // Fetch daily seed
+      const dailyResponse = await fetch(`${backendUrl}/api/daily`);
+      if (dailyResponse.ok) {
+        const dailyData = await dailyResponse.json();
+        gameState.dailySeed = dailyData.seed;
+        console.log('Daily seed loaded:', dailyData.seed);
+      } else {
+        console.warn('Failed to load daily seed');
+      }
 
     } catch (error) {
-      console.log('Backend not available, using defaults');
+      console.warn('Backend not available, using defaults:', error.message);
     }
 
     // Initialize default seed

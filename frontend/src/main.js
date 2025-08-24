@@ -6,6 +6,7 @@ import { LootRevealScene } from './scenes/LootRevealScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 import { HighScoresScene } from './scenes/HighScoresScene.js';
 import { CodexScene } from './scenes/CodexScene.js';
+import { OptionsScene } from './scenes/OptionsScene.js';
 
 // Game configuration
 const config = {
@@ -34,7 +35,8 @@ const config = {
     LootRevealScene,
     GameOverScene,
     HighScoresScene,
-    CodexScene
+    CodexScene,
+    OptionsScene
   ]
 };
 

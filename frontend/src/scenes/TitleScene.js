@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { setSeed, gameRNG } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
+import { audioSystem } from '../utils/AudioSystem.js';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -8,13 +9,22 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create() {
+    // Initialize audio system on first user interaction (only once)
+    if (!audioSystem.isInitialized) {
+      this.input.once('pointerdown', async () => {
+        console.log('🎵 Initializing audio system...');
+        await audioSystem.initialize();
+        audioSystem.resume();
+      });
+    }
+
     // Background gradient effect
     const gradient = this.add.graphics();
     gradient.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x2d1b69, 0x2d1b69, 1);
     gradient.fillRect(0, 0, 375, 667);
 
     // Title
-    this.add.text(187.5, 150, 'EXIT\nOR\nDIE', {
+    this.add.text(187.5, 120, 'EXIT\nOR\nDIE', {
       fontSize: '48px',
       fill: '#ff6b6b',
       fontFamily: 'Courier New',
@@ -23,81 +33,228 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(187.5, 250, 'A Roguelike Adventure', {
+    this.add.text(187.5, 210, 'A Roguelike Adventure', {
       fontSize: '16px',
       fill: '#cccccc',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
-    // Menu buttons
-    this.createButton(187.5, 320, 'NEW RUN', () => this.startNewRun());
-    this.createButton(187.5, 370, 'DAILY RUN', () => this.startDailyRun());
-    this.createButton(187.5, 420, 'HIGH SCORES', () => this.showHighScores());
-    this.createButton(187.5, 470, 'CODEX', () => this.showCodex());
-    this.createButton(187.5, 520, 'OPTIONS', () => this.showOptions());
+    // Username input
+    this.createUsernameInput();
+    
+    // Custom seed input
+    this.createCustomSeedInput();
 
-    // Fullscreen button
-    this.createButton(187.5, 600, 'FULLSCREEN', () => this.toggleFullscreen());
+    // Menu buttons - Better spacing
+    this.createButton(187.5, 380, 'NEW RUN', () => this.startNewRun());
+    this.createButton(187.5, 420, 'DAILY RUN', () => this.startDailyRun());
+    this.createButton(187.5, 460, 'PLAY SEED', () => this.startCustomSeed());
+    this.createButton(187.5, 500, 'HIGH SCORES', () => this.showHighScores());
+    this.createButton(187.5, 540, 'CODEX', () => this.showCodex());
+    this.createButton(187.5, 580, 'OPTIONS', () => this.showOptions());
+
+    // DEBUG: Test if input is working at all
+    this.input.on('pointerdown', (pointer) => {
+      console.log('🎯 Global pointer down at:', pointer.x, pointer.y);
+    });
 
     // Version info
-    this.add.text(10, 650, 'v1.0.0', {
+    this.add.text(10, 650, 'v1.1.0', {
       fontSize: '12px',
       fill: '#666666',
       fontFamily: 'Courier New'
     });
   }
 
+  createUsernameInput() {
+    // Username label
+    this.add.text(187.5, 250, 'USERNAME (3-16 chars)', {
+      fontSize: '12px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    // Username input field background
+    const inputBg = this.add.rectangle(187.5, 275, 200, 30, 0x333333, 0.8);
+    inputBg.setStrokeStyle(2, 0x666666);
+
+    // Username display/input
+    this.usernameText = this.add.text(187.5, 275, gameState.getDisplayUsername(), {
+      fontSize: '14px',
+      fill: '#ffffff',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    // Make username field clickable
+    inputBg.setInteractive();
+    inputBg.on('pointerup', () => {
+      this.editUsername();
+    });
+
+    this.usernameText.setInteractive();
+    this.usernameText.on('pointerup', () => {
+      this.editUsername();
+    });
+  }
+
+  createCustomSeedInput() {
+    // Custom seed label
+    this.add.text(187.5, 310, 'CUSTOM SEED (optional)', {
+      fontSize: '12px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    // Seed input field background
+    const seedBg = this.add.rectangle(187.5, 335, 200, 30, 0x333333, 0.8);
+    seedBg.setStrokeStyle(2, 0x666666);
+
+    // Seed display/input
+    this.seedText = this.add.text(187.5, 335, gameState.seedString || 'Click to enter seed', {
+      fontSize: '12px',
+      fill: gameState.seedString ? '#ffffff' : '#888888',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+
+    // Make seed field clickable
+    seedBg.setInteractive();
+    seedBg.on('pointerup', () => {
+      this.editSeed();
+    });
+
+    this.seedText.setInteractive();
+    this.seedText.on('pointerup', () => {
+      this.editSeed();
+    });
+  }
+
+  editUsername() {
+    const currentUsername = gameState.username || '';
+    const newUsername = window.prompt('Enter username (3-16 characters, A-Z, 0-9, _):', currentUsername);
+    
+    if (newUsername !== null) {
+      if (newUsername === '') {
+        // Clear username
+        gameState.username = '';
+        localStorage.removeItem('exit_or_die_username');
+        this.usernameText.setText(gameState.getDisplayUsername());
+        this.usernameText.setColor('#ffffff');
+      } else if (gameState.setUsername(newUsername)) {
+        // Valid username
+        this.usernameText.setText(gameState.username);
+        this.usernameText.setColor('#ffffff');
+      } else {
+        // Invalid username
+        alert('Invalid username. Must be 3-16 characters using only A-Z, a-z, 0-9, and _');
+      }
+    }
+  }
+
+  editSeed() {
+    const currentSeed = gameState.seedString || '';
+    const newSeed = window.prompt('Enter custom seed (leave empty for random):', currentSeed);
+    
+    if (newSeed !== null) {
+      gameState.setSeedFromString(newSeed);
+      
+      if (newSeed) {
+        this.seedText.setText(newSeed.length > 20 ? newSeed.substr(0, 20) + '...' : newSeed);
+        this.seedText.setColor('#ffffff');
+      } else {
+        this.seedText.setText('Click to enter seed');
+        this.seedText.setColor('#888888');
+      }
+    }
+  }
+
   createButton(x, y, text, callback) {
+    console.log(`🎯 Creating button: ${text} at position ${x}, ${y}`);
     const button = this.add.container(x, y);
     
     // Button background
-    const bg = this.add.rectangle(0, 0, 200, 40, 0x333333, 0.8);
+    const bg = this.add.rectangle(0, 0, 200, 35, 0x333333, 0.8);
     bg.setStrokeStyle(2, 0xff6b6b);
     
     // Button text
     const buttonText = this.add.text(0, 0, text, {
-      fontSize: '16px',
+      fontSize: '14px',
       fill: '#ffffff',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
     button.add([bg, buttonText]);
-    button.setSize(200, 40);
+    button.setSize(200, 35);
     button.setInteractive();
 
-    // Hover effects
+    // Add debugging to all events
     button.on('pointerover', () => {
+      console.log(`🎯 ${text} button hovered`);
       bg.setFillStyle(0xff6b6b, 0.3);
       buttonText.setScale(1.05);
     });
 
     button.on('pointerout', () => {
+      console.log(`🎯 ${text} button unhovered`);
       bg.setFillStyle(0x333333, 0.8);
       buttonText.setScale(1);
     });
 
     button.on('pointerdown', () => {
+      console.log(`🎯 ${text} button pressed down`);
       buttonText.setScale(0.95);
     });
 
     button.on('pointerup', () => {
+      console.log(`🎯 ${text} button released - executing callback`);
       buttonText.setScale(1.05);
-      callback();
+      try {
+        callback();
+      } catch (error) {
+        console.error(`❌ Error in ${text} button callback:`, error);
+      }
     });
 
+    console.log(`✅ Button ${text} created successfully`);
     return button;
   }
 
   startNewRun() {
-    gameState.reset();
-    gameState.isDailyRun = false;
+    console.log('🎯 NEW RUN button clicked - starting new run');
+    console.log('🎯 gameState:', gameState);
+    console.log('🎯 setSeed function:', setSeed);
+    console.log('🎯 gameRNG:', gameRNG);
     
-    // Generate new seed
-    const seed = Date.now() + gameRNG.nextInt(0, 999999);
-    setSeed(seed);
-    gameState.seed = seed;
-    
-    this.scene.start('RunScene');
+    try {
+      console.log('🎯 Step 1: Calling gameState.reset()');
+      gameState.reset();
+      console.log('🎯 Step 2: GameState reset complete');
+      
+      gameState.isDailyRun = false;
+      console.log('🎯 Step 3: Set isDailyRun to false');
+      
+      // Use custom seed if provided, otherwise generate new
+      if (gameState.seedString) {
+        console.log('🎯 Step 4a: Using custom seed:', gameState.seed);
+        setSeed(gameState.seed);
+      } else {
+        console.log('🎯 Step 4b: Generating new seed...');
+        const seed = Date.now() + gameRNG.nextInt(0, 999999);
+        console.log('🎯 Step 4c: Generated seed:', seed);
+        setSeed(seed);
+        gameState.seed = seed;
+        console.log('🎯 Step 4d: Seed set successfully');
+      }
+      
+      console.log('🎯 Step 5: About to transition to RunScene...');
+      console.log('🎯 Scene object:', this.scene);
+      console.log('🎯 Scene.start method:', this.scene.start);
+      
+      this.scene.start('RunScene');
+      console.log('🎯 Step 6: Scene.start called successfully');
+    } catch (error) {
+      console.error('❌ Error in startNewRun:', error);
+      console.error('❌ Error stack:', error.stack);
+    }
   }
 
   startDailyRun() {
@@ -108,6 +265,21 @@ export class TitleScene extends Phaser.Scene {
     const dailySeed = gameState.dailySeed || this.getDailySeed();
     setSeed(dailySeed);
     gameState.seed = dailySeed;
+    gameState.seedString = 'daily-' + new Date().toISOString().split('T')[0];
+    
+    this.scene.start('RunScene');
+  }
+
+  startCustomSeed() {
+    if (!gameState.seedString) {
+      alert('Please enter a custom seed first');
+      return;
+    }
+    
+    gameState.reset();
+    gameState.isDailyRun = false;
+    
+    setSeed(gameState.seed);
     
     this.scene.start('RunScene');
   }
@@ -131,36 +303,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   showOptions() {
-    // Options modal (placeholder)
-    const modal = this.add.container(187.5, 333.5);
-    
-    const bg = this.add.rectangle(0, 0, 300, 400, 0x000000, 0.9);
-    bg.setStrokeStyle(2, 0xff6b6b);
-    
-    const title = this.add.text(0, -150, 'OPTIONS', {
-      fontSize: '24px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-
-    const closeBtn = this.add.text(120, -170, 'X', {
-      fontSize: '20px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5).setInteractive();
-
-    closeBtn.on('pointerup', () => {
-      modal.destroy();
-    });
-
-    modal.add([bg, title, closeBtn]);
-  }
-
-  toggleFullscreen() {
-    if (this.scale.isFullscreen) {
-      this.scale.stopFullscreen();
-    } else {
-      this.scale.startFullscreen();
-    }
+    this.scene.start('OptionsScene');
   }
 }
