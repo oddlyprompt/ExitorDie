@@ -545,11 +545,21 @@ export class GameState {
     });
   }
 
-  // Get seed display (last 4 chars)
-  getSeedDisplay() {
-    return this.seed.toString().slice(-4);
-  }
+  // Get seed display (supports custom strings)
+// full=true -> show the whole thing; otherwise show a short label
+getSeedDisplay(full = false) {
+  const s = (this.seedString && this.seedString.trim())
+    ? this.seedString.trim()             // what the player typed or "daily-YYYY-MM-DD"
+    : String(this.seed ?? '');           // numeric fallback
 
+  if (full) return s;
+
+  // short label: last 4 chars for numbers, or a compact form for words
+  if (/\d/.test(s) && !/[a-zA-Z]/.test(s)) {
+    return s.slice(-4);
+  }
+  return s.length > 10 ? `${s.slice(0,4)}…${s.slice(-4)}` : s;
+}
   // Get consumable counts
   getSmokeBombCount() {
     return this.equipSystem.getConsumableCount('smokeBombs');
