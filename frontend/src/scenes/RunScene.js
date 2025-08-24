@@ -1106,8 +1106,7 @@ export class RunScene extends Phaser.Scene {
     this.depthText.setFontSize(depthFontSize);
     
     // Update seed text
-    const seedFontSize = this.getResponsiveFontSize(10, 1.5, 14);
-    this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
-    this.seedText.setFontSize(seedFontSize);
-  }
+const seedFontSize = this.getResponsiveFont(12, 10, 14);
+this.seedText.setText(`🎲 ${gameState.getSeedDisplay(true)}`); // use full seed
+this.seedText.setFontSize(seedFontSize);
 }
