@@ -249,7 +249,10 @@ export class TitleScene extends Phaser.Scene {
       console.log('🎯 Scene object:', this.scene);
       console.log('🎯 Scene.start method:', this.scene.start);
       
-      this.scene.start('RunScene');
+      this.scene.start('RunScene', { 
+  seed: gameState.seed, 
+  seedString: gameState.seedString 
+});
       console.log('🎯 Step 6: Scene.start called successfully');
     } catch (error) {
       console.error('❌ Error in startNewRun:', error);
