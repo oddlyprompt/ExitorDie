@@ -32,7 +32,7 @@ export class HighScoresScene extends Phaser.Scene {
     this.createNavigationButtons();
 
     // Back button - positioned above navigation buttons with proper spacing
-    this.createButton(187.5, 520, 'BACK TO TITLE', () => this.returnToTitle());
+    this.createButton(187.5, 520, 'BACK TO MENU', () => this.returnToTitle());
 
     // Load initial scores
     this.loadScores();
