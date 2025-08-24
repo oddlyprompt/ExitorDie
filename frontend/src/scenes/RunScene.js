@@ -27,7 +27,6 @@ export class RunScene extends Phaser.Scene {
 
     console.log('🎯 RunScene init – shouldGenerateNewRoom =', this.shouldGenerateNewRoom, ' seed=', gameState.seed, ' seedString=', gameState.seedString);
   }
-}
 
   create() {
     console.log('🎯 RunScene create() method called');
