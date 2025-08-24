@@ -1112,3 +1112,4 @@ const seedFontSize = this.getResponsiveFont(12, 10, 14);
 this.seedText.setText(`🎲 ${gameState.getSeedDisplay(true)}`); // use full seed
 this.seedText.setFontSize(seedFontSize);
 }
+}
