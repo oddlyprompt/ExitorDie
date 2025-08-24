@@ -1090,26 +1090,30 @@ export class RunScene extends Phaser.Scene {
   }
 
   updateHUD() {
-    // Update all HUD components
-    this.updateHPDisplay();
-    
-    // Update greed bar using the new renderer
-    if (this.greedBarContainer && this.greedBarRenderer) {
-      this.greedBarRenderer.updateGreedBar(this.greedBarContainer, gameState.greed, 10);
-    }
-    
-    this.updateStats();
-    this.updateEquipmentDisplay();
-    this.updateConsumablesDisplay();
-    
-    // Update depth text with responsive sizing
-    const depthFontSize = this.getResponsiveFontSize(14, 2.0, 18);
+  // HP
+  this.updateHPDisplay && this.updateHPDisplay();
+
+  // Greed bar
+  if (this.gre edBarContainer && this.gre edBarRenderer) {
+    this.gre edBarRenderer.updateGreedBar(this.gre edBarContainer, gameState.gre ed);
+  }
+
+  // Stats blocks
+  this.updateStats && this.updateStats();
+  this.updateEquipmentDisplay && this.updateEquipmentDisplay();
+  this.updateConsumablesDisplay && this.updateConsumablesDisplay();
+
+  // Depth text
+  if (this.depthText && this.getResponsiveFontSize) {
+    const depthFontSize = this.getResponsiveFontSize(12, 16);
     this.depthText.setText(`DEPTH: ${gameState.depth}`);
     this.depthText.setFontSize(depthFontSize);
-    
-    // Update seed text
-const seedFontSize = this.getResponsiveFont(12, 10, 14);
-this.seedText.setText(`🎲 ${gameState.getSeedDisplay(true)}`); // use full seed
-this.seedText.setFontSize(seedFontSize);
-}
+  }
+
+  // Seed text
+  if (this.seedText && this.getResponsiveFontSize && gameState.getSeedDisplay) {
+    const seedFontSize = this.getResponsiveFontSize(12, 16);
+    this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
+    this.seedText.setFontSize(seedFontSize);
+  }
 }
