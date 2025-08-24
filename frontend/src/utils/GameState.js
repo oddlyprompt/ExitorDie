@@ -189,14 +189,12 @@ export class GameState {
 
   // Seed management
   setSeedFromString(seedString) {
-    this.seedString = seedString;
-    if (seedString) {
-      // Hash string to 64-bit number
-      this.seed = this.hashSeedString(seedString);
-    } else {
-      this.seed = Date.now();
-    }
-  }
+  this.seedString = (seedString || '').trim();
+  this.seed = this.seedString ? this.hashSeedString(this.seedString) : Date.now();
+
+  // 🔑 Tell the RNG to actually use this seed
+  setSeed(this.seed);
+}
 
   hashSeedString(str) {
     let hash = 0;
