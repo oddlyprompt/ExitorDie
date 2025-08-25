@@ -1,22 +1,24 @@
 // vite.config.js
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: './', // needed so the dist/ zip works on itch.io
+  // Make sure relative asset paths work in the itch zip
+  base: './',
+
   server: {
-    port: 3000,
     host: '0.0.0.0',
-    hmr: {
-      port: 3000
-    },
-    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'roguelikebugfix.preview.emergentagent.com', 'localhost', '0.0.0.0']
+    port: 3000,
+    // optional – only if you really need it
+    allowedHosts: ['exitordieplay.preview.emergentagent.com'],
   },
+
   preview: {
-    host: true,
-    port: 3000,
     host: '0.0.0.0',
-    allowedHosts: ['exitordieplay.preview.emergentagent.com', 'roguelike-phaser.preview.emergentagent.com', 'roguelikebugfix.preview.emergentagent.com', 'localhost', '0.0.0.0']
+    port: 3000,
+    // optional – mirror server.allowedHosts if you need it
+    allowedHosts: ['exitordieplay.preview.emergentagent.com'],
   },
+
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -27,4 +29,4 @@ export default defineConfig({
       }
     }
   }
-})
+});
