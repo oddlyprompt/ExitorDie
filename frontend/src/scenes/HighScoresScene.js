@@ -1,6 +1,11 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
 import { fetchScores } from '../utils/leaderboard.js';
+// Safe way to read the backend URL (works even if env isn’t defined)
+const BACKEND_URL =
+  (typeof import.meta !== 'undefined' &&
+   import.meta.env &&
+   import.meta.env.VITE_BACKEND_URL) || '';
 export class HighScoresScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HighScoresScene' });
