@@ -1,5 +1,7 @@
+// frontend/src/scenes/GameOverScene.js
 import Phaser from 'phaser';
-import { submitScore } from '../utils/leaderboard.js';
+// Rename the import so it doesn't clash with the method name below
+import { submitScore as recordScore } from '../utils/leaderboard.js';
 import { gameState } from '../utils/GameState.js';
 import { audioSystem } from '../utils/AudioSystem.js';
 
@@ -9,39 +11,37 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   init(data) {
-    // Check if this was a victory (successful exit) or death
-    this.isVictory = data && data.victory;
+    // Was this a victory (exit) or a death?
+    this.isVictory = !!(data && data.victory);
     console.log('🎯 GameOverScene init - isVictory:', this.isVictory);
   }
 
   create() {
     console.log('🎯 GameOverScene create() called');
+
     try {
-      // Background - different color for victory
+      // ----- Background (green for victory, red for death)
       const bg = this.add.graphics();
       if (this.isVictory) {
-        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x004a00, 0x004a00, 1); // Green tint for victory
+        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x004a00, 0x004a00, 1);
       } else {
-        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1); // Red tint for death
+        bg.fillGradientStyle(0x1a1a1a, 0x1a1a1a, 0x4a0000, 0x4a0000, 1);
       }
       bg.fillRect(0, 0, 375, 667);
 
-      // Title text - different for victory vs death
+      // ----- Title
       const titleText = this.isVictory ? 'VICTORY!' : 'GAME OVER';
       const titleColor = this.isVictory ? '#4ecdc4' : '#ff6b6b';
-      
-      // Play appropriate sound
-      if (this.isVictory) {
-        audioSystem.playVictory();
-      }
-      
+
+      if (this.isVictory) audioSystem.playVictory();
+
       this.add.text(187.5, 150, titleText, {
         fontSize: '36px',
         fill: titleColor,
         fontFamily: 'Courier New'
       }).setOrigin(0.5);
 
-      // Message based on victory or death
+      // ----- Message
       const message = this.isVictory ? this.getVictoryMessage() : this.getDeathMessage();
       this.add.text(187.5, 200, message, {
         fontSize: '14px',
@@ -51,22 +51,22 @@ export class GameOverScene extends Phaser.Scene {
         wordWrap: { width: 300 }
       }).setOrigin(0.5);
 
-      // Stats display
+      // ----- Stats
       console.log('🎯 Creating stats display...');
       this.displayStats();
 
-      // Buttons
+      // ----- Buttons
       console.log('🎯 Creating buttons...');
       this.createButton(187.5, 500, 'NEW RUN', () => this.newRun());
       this.createButton(187.5, 550, 'HIGH SCORES', () => this.showHighScores());
       this.createButton(187.5, 600, 'TITLE SCREEN', () => this.returnToTitle());
 
-      // Auto-submit score if we have a username
+      // ----- Auto-submit score if we have a username
       if (gameState.username) {
         console.log('🎯 Auto-submitting score for user:', gameState.username);
-        this.submitScore();
+        this.submitScore(); // calls the method below
       }
-      
+
       console.log('✅ GameOverScene created successfully');
     } catch (error) {
       console.error('❌ Error in GameOverScene create():', error);
@@ -76,13 +76,12 @@ export class GameOverScene extends Phaser.Scene {
 
   getDeathMessage() {
     const messages = {
-      'cursed_treasure': "The cursed gold claimed your soul...",
-      'room_hazard': "The dungeon's dangers overwhelmed you...",
-      'greed': "Your greed became your downfall...",
-      'bad_luck': "Fortune was not on your side...",
-      'default': "You fell to the dungeon's perils..."
+      cursed_treasure: "The cursed gold claimed your soul...",
+      room_hazard: "The dungeon's dangers overwhelmed you...",
+      greed: "Your greed became your downfall...",
+      bad_luck: "Fortune was not on your side...",
+      default: "You fell to the dungeon's perils..."
     };
-    
     return messages[gameState.deathCause] || messages.default;
   }
 
@@ -94,15 +93,13 @@ export class GameOverScene extends Phaser.Scene {
       "The darkness could not claim you this day!",
       "You've proven yourself a true treasure hunter!"
     ];
-    
-    // Use depth to pick a consistent message per run
     const messageIndex = (gameState.depth || 0) % victoryMessages.length;
     return victoryMessages[messageIndex];
   }
 
   displayStats() {
     console.log('🎯 displayStats called with gameState:', gameState);
-    
+
     try {
       const stats = [
         `Depth Reached: ${gameState.depth || 0}`,
@@ -112,7 +109,6 @@ export class GameOverScene extends Phaser.Scene {
         ''
       ];
 
-      // Add equipped items if any (with safety check)
       const inventory = gameState.inventory || [];
       if (inventory.length > 0) {
         stats.push('Items Found:');
@@ -123,7 +119,6 @@ export class GameOverScene extends Phaser.Scene {
         });
       }
 
-      // Add equipped artifacts (with safety check)  
       const equippedArtifacts = gameState.equippedArtifacts || [];
       if (equippedArtifacts.length > 0) {
         stats.push('');
@@ -134,19 +129,16 @@ export class GameOverScene extends Phaser.Scene {
         });
       }
 
-      console.log('🎯 Stats to display:', stats);
-
       this.add.text(187.5, 280, stats.join('\n'), {
         fontSize: '12px',
         fill: '#ffffff',
         fontFamily: 'Courier New',
         align: 'center'
       }).setOrigin(0.5);
-      
+
       console.log('✅ Stats displayed successfully');
     } catch (error) {
       console.error('❌ Error in displayStats:', error);
-      // Fallback display
       this.add.text(187.5, 280, 'Game statistics unavailable', {
         fontSize: '12px',
         fill: '#ffffff',
@@ -158,12 +150,10 @@ export class GameOverScene extends Phaser.Scene {
 
   createButton(x, y, text, callback) {
     const button = this.add.container(x, y);
-    
-    // Button background
+
     const bg = this.add.rectangle(0, 0, 180, 30, 0x333333, 0.8);
     bg.setStrokeStyle(2, 0xff6b6b);
-    
-    // Button text
+
     const buttonText = this.add.text(0, 0, text, {
       fontSize: '12px',
       fill: '#ffffff',
@@ -174,7 +164,6 @@ export class GameOverScene extends Phaser.Scene {
     button.setSize(180, 30);
     button.setInteractive();
 
-    // Hover effects
     button.on('pointerover', () => {
       bg.setFillStyle(0xff6b6b, 0.3);
       buttonText.setScale(1.05);
@@ -185,10 +174,7 @@ export class GameOverScene extends Phaser.Scene {
       buttonText.setScale(1);
     });
 
-    button.on('pointerdown', () => {
-      buttonText.setScale(0.95);
-    });
-
+    button.on('pointerdown', () => buttonText.setScale(0.95));
     button.on('pointerup', () => {
       buttonText.setScale(1.05);
       callback();
@@ -197,35 +183,33 @@ export class GameOverScene extends Phaser.Scene {
     return button;
   }
 
+  // ===== fixed version (no recursion, braces correct) =====
   async submitScore() {
-  try {
-  await submitScore({
-    username: gameState.username || 'Wanderer',
-    score:    gameState.score    || 0,
-    depth:    gameState.depth    || 0,
-    seedString: gameState.seedString || '',
-    mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
-  });
-} catch (e) {
-  console.warn('⚠️ Failed to submit score:', e);
-}
+    try {
+      await recordScore({
+        username:   gameState.username    || 'Wanderer',
+        score:      gameState.score       || 0,
+        depth:      gameState.depth       || 0,
+        seedString: gameState.seedString  || '',
+        mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
+      });
 
-    // Simple confirmation text
-    this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
-      fontSize: '10px',
-      fill: '#4ecdc4',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
+      // Simple confirmation text
+      this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
+        fontSize: '10px',
+        fill: '#4ecdc4',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
 
-  } catch (err) {
-    console.warn('❌ Failed to submit score:', err);
-    this.add.text(187.5, 450, 'Could not submit score', {
-      fontSize: '10px',
-      fill: '#ff6b6b',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
+    } catch (err) {
+      console.warn('⚠️ Failed to submit score:', err);
+      this.add.text(187.5, 450, 'Could not submit score', {
+        fontSize: '10px',
+        fill: '#ff6b6b',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
+    }
   }
-}
 
   newRun() {
     this.scene.start('TitleScene');
@@ -238,3 +222,4 @@ export class GameOverScene extends Phaser.Scene {
   returnToTitle() {
     this.scene.start('TitleScene');
   }
+}
