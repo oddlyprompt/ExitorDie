@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
-
+import { fetchScores } from '../utils/leaderboard.js';
 export class HighScoresScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HighScoresScene' });
@@ -35,9 +35,22 @@ export class HighScoresScene extends Phaser.Scene {
     this.createButton(187.5, 520, 'BACK TO MENU', () => this.returnToTitle());
 
     // Load initial scores
-    this.loadScores();
-  }
+    async loadScores() {
+  if (this.loading) return;
+  this.loading = true;
 
+  try {
+    const pageSize = 10;
+    this.scores = await fetchScores(this.currentPage, pageSize, this.currentFilter);
+    this.displayScores();
+    this.updateNavigationButtons();
+  } catch (err) {
+    console.warn('Error loading scores:', err);
+    this.displayError('Unable to connect to server');
+  } finally {
+    this.loading = false;
+  }
+}
   createFilterButtons() {
     const filters = ['ALL', 'DAILY', 'CUSTOM'];
     const startX = 60;
