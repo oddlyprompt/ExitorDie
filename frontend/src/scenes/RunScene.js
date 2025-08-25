@@ -1,3 +1,4 @@
+// --- imports (top of file) ---
 import Phaser from 'phaser';
 import { gameRNG, setSeed } from '../utils/SeededRNG.js';
 import { gameState } from '../utils/GameState.js';
@@ -5,28 +6,31 @@ import { audioSystem } from '../utils/AudioSystem.js';
 import { runModifiers } from '../utils/RunModifiers.js';
 import { GreedBarRenderer } from '../utils/greedBar.js';
 
+// --- class declaration ---
 export class RunScene extends Phaser.Scene {
   constructor() {
     super({ key: 'RunScene' });
     console.log('🎯 RunScene constructor called');
   }
 
+  // IMPORTANT: exactly one opening { here and one closing } before create()
   init(data = {}) {
     // keep your existing flag logic
     this.shouldGenerateNewRoom =
       data && data.shouldGenerateNewRoom !== false;
 
-    // If TitleScene passed a seed, lock RNG to it
+    // If TitleScene passed a seed, lock the RNG to it
     if (typeof data.seed !== 'undefined') {
-      setSeed(data.seed);            // align global RNG
-      gameState.seed = data.seed;    // remember seed used
+      setSeed(data.seed);                 // align global RNG
+      gameState.seed = data.seed;         // remember numeric seed
       if (data.seedString) {
-        gameState.seedString = data.seedString;
+        gameState.seedString = data.seedString; // remember display string
       }
     }
 
-    console.log('🎯 RunScene init – shouldGenerateNewRoom =', this.shouldGenerateNewRoom, ' seed=', gameState.seed, ' seedString=', gameState.seedString);
+    console.log('🎯 RunScene init — shouldGenerateNewRoom:', this.shouldGenerateNewRoom);
   }
+  // <<-- DO NOT add an extra } here
 
   create() {
     console.log('🎯 RunScene create() method called');
@@ -1088,92 +1092,53 @@ export class RunScene extends Phaser.Scene {
       });
     }
   }
-// Safe helper: if not present, returns the base size unchanged
-getResponsiveFont(base, min = base, max = base) {
-  try {
-    // Optional chaining is fine, but if your build ever complains,
-    // replace this with a longer null-check version.
-    const w = this.scale?.gameSize?.width ?? 375;
-    const scale = Math.max(0.8, Math.min(1.5, w / 375));
-    const size = Math.round(base * scale);
-    return Math.max(min, Math.min(max, size));
-  } catch {
-    return base;
+  // Safe helper: if not present, returns the base size
+  getResponsiveFont(base, min = base, max = base) {
+    try {
+      // Optional chaining is fine with Vite, but this also works on older targets
+      const w = (this.scale && this.scale.gameSize && this.scale.gameSize.width) || 375;
+      const scale = Math.max(0.8, Math.min(1.5, w / 375));
+      const size = Math.round(base * scale);
+      return Math.max(min, Math.min(max, size));
+    } catch {
+      return base;
+    }
   }
-}
 
-updateHUD() {
-  try {
-    // ---- HP ----
-    if (typeof this.updateHPDisplay === 'function') {
-      this.updateHPDisplay();
-    }
+  updateHUD() {
+    try {
+      // HP
+      if (this.updateHPDisplay) this.updateHPDisplay();
 
-    // ---- Greed bar ----
-    if (
-      this.greedBarContainer &&
-      this.greedBarRenderer &&
-      typeof this.greedBarRenderer.updateGreedBar === 'function'
-    ) {
-      const gs = gameState || {};
-      const currentGreed = typeof gs.greed === 'number' ? gs.greed : 0;
-      const maxGreed = typeof gs.maxGreed === 'number' ? gs.maxGreed : 10;
-
-      this.greedBarRenderer.updateGreedBar(
-        this.greedBarContainer,
-        currentGreed,
-        maxGreed
-      );
-    }
-
-    // ---- Stats blocks ----
-    if (typeof this.updateStats === 'function') this.updateStats();
-    if (typeof this.updateEquipmentDisplay === 'function') this.updateEquipmentDisplay();
-    if (typeof this.updateConsumablesDisplay === 'function') this.updateConsumablesDisplay();
-
-    // ---- Depth text ----
-    if (
-      this.depthText &&
-      typeof this.depthText.setText === 'function' &&
-      typeof this.depthText.setFontSize === 'function'
-    ) {
-      const base = 14;
-      const depthFontSize = (typeof this.getResponsiveFont === 'function')
-        ? this.getResponsiveFont(base, 12, 16)
-        : base;
-
-      const depth = (gameState && typeof gameState.depth === 'number')
-        ? gameState.depth
-        : 0;
-
-      this.depthText.setText('DEPTH: ' + depth);
-      this.depthText.setFontSize(depthFontSize);
-    }
-
-    // ---- Seed text ----
-    if (
-      this.seedText &&
-      typeof this.seedText.setText === 'function' &&
-      typeof this.seedText.setFontSize === 'function'
-    ) {
-      const base = 14;
-      const seedFontSize = (typeof this.getResponsiveFont === 'function')
-        ? this.getResponsiveFont(base, 12, 16)
-        : base;
-
-      let seedDisplay = '—';
-      if (gameState) {
-        if (typeof gameState.getSeedDisplay === 'function') {
-          seedDisplay = gameState.getSeedDisplay();
-        } else if (gameState.seed != null) {
-          seedDisplay = String(gameState.seed).slice(-4);
-        }
+      // Greed bar
+      if (this.greedBarContainer && this.greedBarRenderer && this.greedBarRenderer.updateGreedBar) {
+        this.greedBarRenderer.updateGreedBar(
+          this.greedBarContainer,
+          gameState.greed,
+          (gameState.maxGreed != null ? gameState.maxGreed : 10)
+        );
       }
 
-      this.seedText.setText('🎲 ' + seedDisplay);
-      this.seedText.setFontSize(seedFontSize);
+      // Stats blocks
+      if (this.updateStats) this.updateStats();
+      if (this.updateEquipmentDisplay) this.updateEquipmentDisplay();
+      if (this.updateConsumablesDisplay) this.updateConsumablesDisplay();
+
+      // Depth text
+      const depthFontSize = this.getResponsiveFont(10, 10, 14);
+      if (this.depthText && this.depthText.setText && this.depthText.setFontSize) {
+        this.depthText.setText(`DEPTH: ${gameState.depth}`);
+        this.depthText.setFontSize(depthFontSize);
+      }
+
+      // Seed text
+      const seedFontSize = this.getResponsiveFont(10, 10, 14);
+      if (this.seedText && this.seedText.setText && this.seedText.setFontSize) {
+        const seedDisplay = (gameState.getSeedDisplay ? gameState.getSeedDisplay() : '') || '';
+        this.seedText.setText(`🎲 ${seedDisplay}`);
+        this.seedText.setFontSize(seedFontSize);
+      }
+    } catch (err) {
+      console.error('⚠️ updateHUD failed:', err);
     }
-  } catch (err) {
-    console.error('⚠️ updateHUD failed:', err);
   }
-}
