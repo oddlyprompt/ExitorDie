@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
-
+import { fetchScores } from '../utils/leaderboard.js';
 // --- Safe backend base URL (no trailing slash) ---
 const backendUrlRaw =
   (import.meta && import.meta.env && import.meta.env.VITE_BACKEND_URL) ||
