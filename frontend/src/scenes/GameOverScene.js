@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { submitScore } from '../utils/leaderboard.js';
 import { gameState } from '../utils/GameState.js';
 import { audioSystem } from '../utils/AudioSystem.js';
 
@@ -198,17 +199,16 @@ export class GameOverScene extends Phaser.Scene {
 
   async submitScore() {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
-      
-      // Get equipped items safely
-      let equippedItems = [];
-      try {
-        if (gameState.equipSystem) {
-          equippedItems = gameState.equipSystem.getEquippedItems().map(item => item.name || 'Unknown');
-        }
-      } catch (equipError) {
-        console.warn('Could not get equipped items:', equipError);
-      }
+  await submitScore({
+    username: gameState.username || 'Wanderer',
+    score: gameState.score || 0,
+    depth: gameState.depth || 0,
+    seedString: gameState.seedString || '',
+    mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
+  });
+} catch (e) {
+  console.warn('Failed to submit score:', e);
+}
 
       // Ensure replayLog is always an array
       const safeReplayLog = Array.isArray(gameState.replayLog) ? gameState.replayLog : [];
