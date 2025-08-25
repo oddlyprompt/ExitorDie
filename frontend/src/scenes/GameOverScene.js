@@ -198,18 +198,30 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   async submitScore() {
-    try {
-  await submitScore({
-    username: gameState.username || 'Wanderer',
-    score: gameState.score || 0,
-    depth: gameState.depth || 0,
-    seedString: gameState.seedString || '',
-    mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
-  });
-} catch (e) {
-  console.warn('Failed to submit score:', e);
-}
+  try {
+    await submitScore({
+      username: gameState.username || 'Wanderer',
+      score: gameState.score || 0,
+      depth: gameState.depth || 0,
+      seedString: gameState.seedString || '',
+      mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
+    });
 
+    // tiny confirmation for the user
+    this.add.text(187.5, 450, 'Score submitted!', {
+      fontSize: '10px',
+      fill: '#4ecdc4',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+  } catch (e) {
+    console.warn('Failed to submit score:', e);
+    this.add.text(187.5, 450, 'Score submission failed', {
+      fontSize: '10px',
+      fill: '#ff6b6b',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+  }
+}
       // Ensure replayLog is always an array
       const safeReplayLog = Array.isArray(gameState.replayLog) ? gameState.replayLog : [];
       const safeInventory = Array.isArray(gameState.inventory) ? gameState.inventory : [];
