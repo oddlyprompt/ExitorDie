@@ -199,28 +199,16 @@ export class GameOverScene extends Phaser.Scene {
 
   async submitScore() {
   try {
-    // Decide on a safe username
-    const name =
-      gameState.username ||
-      (typeof gameState.getStoredUsername === 'function' && gameState.getStoredUsername()) ||
-      (typeof gameState.getDisplayUsername === 'function' && gameState.getDisplayUsername()) ||
-      'Wanderer';
-
-    // Calculate score once
-    const finalScore = typeof gameState.calculateScore === 'function'
-      ? gameState.calculateScore()
-      : (gameState.score || 0);
-
-    gameState.score = finalScore; // keep it consistent for display
-
-    // Call the single leaderboard helper
-    await submitScore({
-      username: name,
-      score: finalScore,
-      depth: gameState.depth || 0,
-      seedString: gameState.seedString || '',
-      mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : 'all')
-    });
+  await submitScore({
+    username: gameState.username || 'Wanderer',
+    score:    gameState.score    || 0,
+    depth:    gameState.depth    || 0,
+    seedString: gameState.seedString || '',
+    mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
+  });
+} catch (e) {
+  console.warn('⚠️ Failed to submit score:', e);
+}
 
     // Simple confirmation text
     this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
