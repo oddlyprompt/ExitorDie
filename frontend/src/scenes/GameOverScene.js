@@ -238,4 +238,3 @@ export class GameOverScene extends Phaser.Scene {
   returnToTitle() {
     this.scene.start('TitleScene');
   }
-}
