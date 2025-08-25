@@ -7,8 +7,6 @@ const backendUrlRaw =
   window.__BACKEND_URL || '';
 const BACKEND_URL = String(backendUrlRaw).replace(/\/$/, ''); // '' is fine (will 404 gracefully)
 
-// -------------------------------------------------
-
 export class HighScoresScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HighScoresScene' });
@@ -32,6 +30,7 @@ export class HighScoresScene extends Phaser.Scene {
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
+    // Filters
     this.createFilterButtons();
 
     // Container for scores
@@ -47,20 +46,18 @@ export class HighScoresScene extends Phaser.Scene {
     this.loadScores();
   }
 
-  // --------- LOAD SCORES (robust, no env/template pitfalls) ----------
+  // --------- LOAD SCORES ----------
   async loadScores() {
     if (this.loading) return;
     this.loading = true;
 
     try {
-      // Build URL safely (no double slashes)
       const page = Number(this.currentPage) || 0;
       const params = new URLSearchParams({ page: String(page), limit: '10' });
-
       if (this.currentFilter === 'DAILY') params.append('daily', 'true');
       if (this.currentFilter === 'CUSTOM') params.append('custom', 'true');
 
-      const base = BACKEND_URL || ''; // if '', this will 404 and we show the error nicely
+      const base = BACKEND_URL || '';
       const url = `${base}/api/leaderboard?${params.toString()}`;
 
       const response = await fetch(url);
@@ -78,105 +75,47 @@ export class HighScoresScene extends Phaser.Scene {
       this.loading = false;
     }
   }
-  // -------------------------------------------------------------------
-}
-  displayScores() {
-    // Clear existing scores
-    this.scoresContainer.removeAll(true);
 
-    if (this.scores.length === 0) {
-      const noScores = this.add.text(187.5, 200, 'No scores found', {
-        fontSize: '14px',
-        fill: '#666666',
-        fontFamily: 'Courier New'
-      }).setOrigin(0.5);
-      
-      this.scoresContainer.add(noScores);
-      return;
-    }
+  // ---------- FILTER BUTTONS ----------
+  createFilterButtons() {
+    const filters = ['ALL', 'DAILY', 'CUSTOM'];
+    const startX = 60;
+    const buttonWidth = 85;
 
-    // Headers
-    const headers = this.add.text(20, 140, 'RANK  PLAYER               SCORE  DEPTH', {
+    this.filterButtons = [];
+    filters.forEach((filter, index) => {
+      const x = startX + (index * buttonWidth);
+      const btn = this.createFilterButton(x, 100, filter, () => this.setFilter(filter));
+      this.filterButtons.push({ button: btn, filter });
+    });
+
+    this.updateFilterButtons();
+  }
+
+  createFilterButton(x, y, text, callback) {
+    const button = this.add.container(x, y);
+
+    const bg = this.add.rectangle(0, 0, 80, 25, 0x333333, 0.8);
+    bg.setStrokeStyle(1, 0x666666);
+
+    const label = this.add.text(0, 0, text, {
       fontSize: '10px',
-      fill: '#cccccc',
-      fontFamily: 'Courier New'
-    });
-    this.scoresContainer.add(headers);
-
-    // Score entries
-    this.scores.forEach((score, index) => {
-      const rank = (this.currentPage * 10) + index + 1;
-      const y = 165 + (index * 25);
-      
-      // Highlight current user's score
-      const isCurrentUser = score.username === gameState.username;
-      const color = isCurrentUser ? '#4ecdc4' : '#ffffff';
-      
-      // Format username (truncate if too long but allow more space)
-      const username = score.username.length > 16 ? 
-        score.username.substring(0, 16) + '...' : 
-        score.username;
-      
-      const scoreText = `${rank.toString().padStart(2, ' ')}    ${username.padEnd(19, ' ')} ${score.score.toString().padStart(5, ' ')}   ${score.depth.toString().padStart(2, ' ')}`;
-      
-      const entry = this.add.text(20, y, scoreText, {
-        fontSize: '10px',
-        fill: color,
-        fontFamily: 'Courier New'
-      });
-      
-      this.scoresContainer.add(entry);
-      
-      // Add seed info for custom runs
-      if (score.seedString && score.seedString !== '') {
-        const seedInfo = this.add.text(25, y + 12, `Seed: ${score.seedString}`, {
-          fontSize: '8px',
-          fill: '#888888',
-          fontFamily: 'Courier New'
-        });
-        this.scoresContainer.add(seedInfo);
-      }
-    });
-  }
-
-  displayError(message) {
-    this.scoresContainer.removeAll(true);
-    
-    const errorText = this.add.text(187.5, 200, message, {
-      fontSize: '14px',
-      fill: '#ff6b6b',
+      fill: '#ffffff',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
-    
-    this.scoresContainer.add(errorText);
-  }
 
-  createNavigationButtons() {
-    this.prevButton = this.createButton(90, 560, 'PREVIOUS', () => this.previousPage());
-    this.nextButton = this.createButton(285, 560, 'NEXT', () => this.nextPage());
-    
-    this.pageText = this.add.text(187.5, 560, `Page ${this.currentPage + 1}`, {
-      fontSize: '12px',
-      fill: '#cccccc',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-  }
+    button.add([bg, label]);
+    button.setSize(80, 25);
+    button.setInteractive();
+    button.on('pointerup', callback);
 
-  updateNavigationButtons() {
-    // Update page text
-    this.pageText.setText(`Page ${this.currentPage + 1}`);
-    
-    // Enable/disable buttons based on data
-    const hasPrevious = this.currentPage > 0;
-    const hasNext = this.scores.length === 10; // Full page suggests more data
-    
-    this.prevButton.setAlpha(hasPrevious ? 1 : 0.5);
-    this.nextButton.setAlpha(hasNext ? 1 : 0.5);
+    button.bg = bg;     // keep refs for styling
+    button.text = label;
+    return button;
   }
 
   setFilter(filter) {
     if (this.currentFilter === filter || this.loading) return;
-    
     this.currentFilter = filter;
     this.currentPage = 0;
     this.updateFilterButtons();
@@ -191,6 +130,87 @@ export class HighScoresScene extends Phaser.Scene {
     });
   }
 
+  // ---------- SCORE LIST ----------
+  displayScores() {
+    this.scoresContainer.removeAll(true);
+
+    if (!this.scores.length) {
+      const noScores = this.add.text(187.5, 200, 'No scores found', {
+        fontSize: '14px',
+        fill: '#666666',
+        fontFamily: 'Courier New'
+      }).setOrigin(0.5);
+      this.scoresContainer.add(noScores);
+      return;
+    }
+
+    const headers = this.add.text(20, 140, 'RANK  PLAYER               SCORE  DEPTH', {
+      fontSize: '10px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    });
+    this.scoresContainer.add(headers);
+
+    this.scores.forEach((score, index) => {
+      const rank = (this.currentPage * 10) + index + 1;
+      const y = 165 + (index * 25);
+
+      const isCurrentUser = score.username === gameState.username;
+      const color = isCurrentUser ? '#4ecdc4' : '#ffffff';
+
+      const username = (score.username || '');
+      const shortName = username.length > 16 ? `${username.slice(0,16)}...` : username;
+
+      const line = `${rank.toString().padStart(2,' ')}    ${shortName.padEnd(19,' ')} ${String(score.score||0).padStart(5,' ')}   ${String(score.depth||0).padStart(2,' ')}`;
+
+      const entry = this.add.text(20, y, line, {
+        fontSize: '10px',
+        fill: color,
+        fontFamily: 'Courier New'
+      });
+      this.scoresContainer.add(entry);
+
+      if (score.seedString) {
+        const seedInfo = this.add.text(25, y + 12, `Seed: ${score.seedString}`, {
+          fontSize: '8px',
+          fill: '#888888',
+          fontFamily: 'Courier New'
+        });
+        this.scoresContainer.add(seedInfo);
+      }
+    });
+  }
+
+  displayError(message) {
+    this.scoresContainer.removeAll(true);
+    const errorText = this.add.text(187.5, 200, message, {
+      fontSize: '14px',
+      fill: '#ff6b6b',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+    this.scoresContainer.add(errorText);
+  }
+
+  // ---------- PAGER ----------
+  createNavigationButtons() {
+    this.prevButton = this.createButton(90, 560, 'PREVIOUS', () => this.previousPage());
+    this.nextButton = this.createButton(285, 560, 'NEXT', () => this.nextPage());
+
+    this.pageText = this.add.text(187.5, 560, `Page ${this.currentPage + 1}`, {
+      fontSize: '12px',
+      fill: '#cccccc',
+      fontFamily: 'Courier New'
+    }).setOrigin(0.5);
+  }
+
+  updateNavigationButtons() {
+    this.pageText.setText(`Page ${this.currentPage + 1}`);
+    const hasPrevious = this.currentPage > 0;
+    const hasNext = this.scores.length === 10;
+    this.prevButton.setAlpha(hasPrevious ? 1 : 0.5);
+    this.nextButton.setAlpha(hasNext ? 1 : 0.5);
+  }
+
   previousPage() {
     if (this.currentPage > 0 && !this.loading) {
       this.currentPage--;
@@ -199,46 +219,33 @@ export class HighScoresScene extends Phaser.Scene {
   }
 
   nextPage() {
-    if (this.scores.length === 10 && !this.loading) { // Full page suggests more data
+    if (this.scores.length === 10 && !this.loading) {
       this.currentPage++;
       this.loadScores();
     }
   }
 
+  // ---------- tiny UI helpers ----------
   createButton(x, y, text, callback) {
     const button = this.add.container(x, y);
-    
+
     const bg = this.add.rectangle(0, 0, 120, 30, 0x333333, 0.8);
     bg.setStrokeStyle(2, 0xff6b6b);
-    
-    const buttonText = this.add.text(0, 0, text, {
+
+    const label = this.add.text(0, 0, text, {
       fontSize: '12px',
       fill: '#ffffff',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
-    button.add([bg, buttonText]);
+    button.add([bg, label]);
     button.setSize(120, 30);
     button.setInteractive();
 
-    button.on('pointerover', () => {
-      bg.setFillStyle(0xff6b6b, 0.3);
-      buttonText.setScale(1.05);
-    });
-
-    button.on('pointerout', () => {
-      bg.setFillStyle(0x333333, 0.8);
-      buttonText.setScale(1);
-    });
-
-    button.on('pointerdown', () => {
-      buttonText.setScale(0.95);
-    });
-
-    button.on('pointerup', () => {
-      buttonText.setScale(1.05);
-      callback();
-    });
+    button.on('pointerover', () => { bg.setFillStyle(0xff6b6b, 0.3); label.setScale(1.05); });
+    button.on('pointerout',  () => { bg.setFillStyle(0x333333, 0.8); label.setScale(1.0); });
+    button.on('pointerdown', () => { label.setScale(0.95); });
+    button.on('pointerup',   () => { label.setScale(1.05); callback(); });
 
     return button;
   }
