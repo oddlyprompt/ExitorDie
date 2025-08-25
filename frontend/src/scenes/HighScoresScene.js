@@ -44,17 +44,30 @@ export class HighScoresScene extends Phaser.Scene {
   if (this.loading) return;
   this.loading = true;
 
-  try {
-    const pageSize = 10;
-    this.scores = await fetchScores(this.currentPage, pageSize, this.currentFilter);
-    this.displayScores();
-    this.updateNavigationButtons();
-  } catch (err) {
-    console.warn('Error loading scores:', err);
-    this.displayError('Unable to connect to server');
-  } finally {
-    this.loading = false;
-  }
+try {
+  const pageSize = 10;
+
+  // Replace this with your backend/Supabase URL
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  let url = `${backendUrl}/api/leaderboard?page=${this.currentPage}&limit=${pageSize}`;
+  if (this.currentFilter === 'DAILY') url += '&daily=true';
+  if (this.currentFilter === 'CUSTOM') url += '&custom=true';
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch scores');
+
+  const data = await response.json();
+  this.scores = data.rows || [];
+
+  this.displayScores();
+  this.updateNavigationButtons();
+} catch (err) {
+  console.warn('Error loading scores:', err);
+  this.displayError('Unable to connect to server');
+} finally {
+  this.loading = false;
+}
 }
   createFilterButtons() {
     const filters = ['ALL', 'DAILY', 'CUSTOM'];
