@@ -1104,37 +1104,76 @@ getResponsiveFont(base, min = base, max = base) {
 
 updateHUD() {
   try {
-    // HP
-    if (this.updateHPDisplay) this.updateHPDisplay();
+    // ---- HP ----
+    if (typeof this.updateHPDisplay === 'function') {
+      this.updateHPDisplay();
+    }
 
-    // Greed bar
-    if (this.greedBarContainer && this.greedBarRenderer?.updateGreedBar) {
+    // ---- Greed bar ----
+    if (
+      this.greedBarContainer &&
+      this.greedBarRenderer &&
+      typeof this.greedBarRenderer.updateGreedBar === 'function'
+    ) {
+      const gs = gameState || {};
+      const currentGreed = typeof gs.greed === 'number' ? gs.greed : 0;
+      const maxGreed = typeof gs.maxGreed === 'number' ? gs.maxGreed : 10;
+
       this.greedBarRenderer.updateGreedBar(
         this.greedBarContainer,
-        gameState.greed,
-        gameState.maxGreed ?? 10
+        currentGreed,
+        maxGreed
       );
     }
 
-    // Stats blocks
-    if (this.updateStats) this.updateStats();
-    if (this.updateEquipmentDisplay) this.updateEquipmentDisplay();
-    if (this.updateConsumablesDisplay) this.updateConsumablesDisplay();
+    // ---- Stats blocks ----
+    if (typeof this.updateStats === 'function') this.updateStats();
+    if (typeof this.updateEquipmentDisplay === 'function') this.updateEquipmentDisplay();
+    if (typeof this.updateConsumablesDisplay === 'function') this.updateConsumablesDisplay();
 
-    // Depth text
-    const depthFontSize = this.getResponsiveFont(12, 10, 16);
-    if (this.depthText?.setText && this.depthText?.setFontSize) {
-      this.depthText.setText(`DEPTH: ${gameState.depth}`);
+    // ---- Depth text ----
+    if (
+      this.depthText &&
+      typeof this.depthText.setText === 'function' &&
+      typeof this.depthText.setFontSize === 'function'
+    ) {
+      const base = 14;
+      const depthFontSize = (typeof this.getResponsiveFont === 'function')
+        ? this.getResponsiveFont(base, 12, 16)
+        : base;
+
+      const depth = (gameState && typeof gameState.depth === 'number')
+        ? gameState.depth
+        : 0;
+
+      this.depthText.setText('DEPTH: ' + depth);
       this.depthText.setFontSize(depthFontSize);
     }
 
-    // Seed text
-    const seedFontSize = this.getResponsiveFont(10, 8, 14);
-    if (this.seedText?.setText && this.seedText?.setFontSize) {
-      this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
+    // ---- Seed text ----
+    if (
+      this.seedText &&
+      typeof this.seedText.setText === 'function' &&
+      typeof this.seedText.setFontSize === 'function'
+    ) {
+      const base = 14;
+      const seedFontSize = (typeof this.getResponsiveFont === 'function')
+        ? this.getResponsiveFont(base, 12, 16)
+        : base;
+
+      let seedDisplay = '—';
+      if (gameState) {
+        if (typeof gameState.getSeedDisplay === 'function') {
+          seedDisplay = gameState.getSeedDisplay();
+        } else if (gameState.seed != null) {
+          seedDisplay = String(gameState.seed).slice(-4);
+        }
+      }
+
+      this.seedText.setText('🎲 ' + seedDisplay);
       this.seedText.setFontSize(seedFontSize);
     }
   } catch (err) {
-    console.error('⚠️ updateHUD failed (non-fatal):', err);
+    console.error('⚠️ updateHUD failed:', err);
   }
 }
