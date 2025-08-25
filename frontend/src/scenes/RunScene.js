@@ -1142,3 +1142,4 @@ export class RunScene extends Phaser.Scene {
       console.error('⚠️ updateHUD failed:', err);
     }
   }
+  }
