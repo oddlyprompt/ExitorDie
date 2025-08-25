@@ -47,34 +47,37 @@ export class HighScoresScene extends Phaser.Scene {
   }
 
   // --------- LOAD SCORES ----------
-  async loadScores() {
-    if (this.loading) return;
-    this.loading = true;
+  // replace your entire loadScores() with this
+async loadScores() {
+  if (this.loading) return;
+  this.loading = true;
 
-    try {
-      const page = Number(this.currentPage) || 0;
-      const params = new URLSearchParams({ page: String(page), limit: '10' });
-      if (this.currentFilter === 'DAILY') params.append('daily', 'true');
-      if (this.currentFilter === 'CUSTOM') params.append('custom', 'true');
+  try {
+    const page   = Number(this.currentPage) || 0;
+    const filter = this.currentFilter; // 'ALL' | 'DAILY' | 'CUSTOM'
 
-      const base = BACKEND_URL || '';
-      const url = `${base}/api/leaderboard?${params.toString()}`;
+    // Pull straight from Supabase
+    const rows = await fetchScores(page, 10, filter);
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to load scores');
+    // Normalize to what displayScores() expects
+    this.scores = rows.map(r => ({
+      username:   r.username ?? '—',
+      score:      r.score ?? 0,
+      depth:      r.depth ?? 0,
+      seedString: r.seed_string ?? '',
+      mode:       r.mode ?? null,
+      created_at: r.created_at
+    }));
 
-      const data = await response.json();
-      this.scores = Array.isArray(data?.rows) ? data.rows : [];
-
-      this.displayScores();
-      this.updateNavigationButtons();
-    } catch (err) {
-      console.warn('Error loading scores:', err);
-      this.displayError('Unable to connect to server');
-    } finally {
-      this.loading = false;
-    }
+    this.displayScores();
+    this.updateNavigationButtons();
+  } catch (err) {
+    console.warn('Error loading scores:', err);
+    this.displayError('Unable to connect to server');
+  } finally {
+    this.loading = false;
   }
+}
 
   // ---------- FILTER BUTTONS ----------
   createFilterButtons() {
