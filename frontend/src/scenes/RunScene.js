@@ -1091,6 +1091,8 @@ export class RunScene extends Phaser.Scene {
 // Safe helper: if not present, returns the base size unchanged
 getResponsiveFont(base, min = base, max = base) {
   try {
+    // Optional chaining is fine, but if your build ever complains,
+    // replace this with a longer null-check version.
     const w = this.scale?.gameSize?.width ?? 375;
     const scale = Math.max(0.8, Math.min(1.5, w / 375));
     const size = Math.round(base * scale);
@@ -1099,31 +1101,40 @@ getResponsiveFont(base, min = base, max = base) {
     return base;
   }
 }
-  updateHUD() {
-  // HP
-  this.updateHPDisplay && this.updateHPDisplay();
 
-  // Greed bar
-  if (this.gre edBarContainer && this.gre edBarRenderer) {
-    this.gre edBarRenderer.updateGreedBar(this.gre edBarContainer, gameState.gre ed);
-  }
+updateHUD() {
+  try {
+    // HP
+    if (this.updateHPDisplay) this.updateHPDisplay();
 
-  // Stats blocks
-  this.updateStats && this.updateStats();
-  this.updateEquipmentDisplay && this.updateEquipmentDisplay();
-  this.updateConsumablesDisplay && this.updateConsumablesDisplay();
+    // Greed bar
+    if (this.greedBarContainer && this.greedBarRenderer?.updateGreedBar) {
+      this.greedBarRenderer.updateGreedBar(
+        this.greedBarContainer,
+        gameState.greed,
+        gameState.maxGreed ?? 10
+      );
+    }
 
-  // Depth text
-  if (this.depthText && this.getResponsiveFontSize) {
-    const depthFontSize = this.getResponsiveFontSize(12, 16);
-    this.depthText.setText(`DEPTH: ${gameState.depth}`);
-    this.depthText.setFontSize(depthFontSize);
-  }
+    // Stats blocks
+    if (this.updateStats) this.updateStats();
+    if (this.updateEquipmentDisplay) this.updateEquipmentDisplay();
+    if (this.updateConsumablesDisplay) this.updateConsumablesDisplay();
 
-  // Seed text
-  if (this.seedText && this.getResponsiveFontSize && gameState.getSeedDisplay) {
-    const seedFontSize = this.getResponsiveFontSize(12, 16);
-    this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
-    this.seedText.setFontSize(seedFontSize);
+    // Depth text
+    const depthFontSize = this.getResponsiveFont(12, 10, 16);
+    if (this.depthText?.setText && this.depthText?.setFontSize) {
+      this.depthText.setText(`DEPTH: ${gameState.depth}`);
+      this.depthText.setFontSize(depthFontSize);
+    }
+
+    // Seed text
+    const seedFontSize = this.getResponsiveFont(10, 8, 14);
+    if (this.seedText?.setText && this.seedText?.setFontSize) {
+      this.seedText.setText(`🎲 ${gameState.getSeedDisplay()}`);
+      this.seedText.setFontSize(seedFontSize);
+    }
+  } catch (err) {
+    console.error('⚠️ updateHUD failed (non-fatal):', err);
   }
 }
