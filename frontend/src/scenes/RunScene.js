@@ -1088,7 +1088,17 @@ export class RunScene extends Phaser.Scene {
       });
     }
   }
-
+// Safe helper: if not present, returns the base size unchanged
+getResponsiveFont(base, min = base, max = base) {
+  try {
+    const w = this.scale?.gameSize?.width ?? 375;
+    const scale = Math.max(0.8, Math.min(1.5, w / 375));
+    const size = Math.round(base * scale);
+    return Math.max(min, Math.min(max, size));
+  } catch {
+    return base;
+  }
+}
   updateHUD() {
   // HP
   this.updateHPDisplay && this.updateHPDisplay();
