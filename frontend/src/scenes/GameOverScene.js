@@ -199,107 +199,45 @@ export class GameOverScene extends Phaser.Scene {
 
   async submitScore() {
   try {
+    // Decide on a safe username
+    const name =
+      gameState.username ||
+      (typeof gameState.getStoredUsername === 'function' && gameState.getStoredUsername()) ||
+      (typeof gameState.getDisplayUsername === 'function' && gameState.getDisplayUsername()) ||
+      'Wanderer';
+
+    // Calculate score once
+    const finalScore = typeof gameState.calculateScore === 'function'
+      ? gameState.calculateScore()
+      : (gameState.score || 0);
+
+    gameState.score = finalScore; // keep it consistent for display
+
+    // Call the single leaderboard helper
     await submitScore({
-      username: gameState.username || 'Wanderer',
-      score: gameState.score || 0,
+      username: name,
+      score: finalScore,
       depth: gameState.depth || 0,
       seedString: gameState.seedString || '',
-      mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : null)
+      mode: gameState.isDailyRun ? 'daily' : (gameState.seedString ? 'custom' : 'all')
     });
 
-    // tiny confirmation for the user
-    this.add.text(187.5, 450, 'Score submitted!', {
+    // Simple confirmation text
+    this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
       fontSize: '10px',
       fill: '#4ecdc4',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
-  } catch (e) {
-    console.warn('Failed to submit score:', e);
-    this.add.text(187.5, 450, 'Score submission failed', {
+
+  } catch (err) {
+    console.warn('❌ Failed to submit score:', err);
+    this.add.text(187.5, 450, 'Could not submit score', {
       fontSize: '10px',
       fill: '#ff6b6b',
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
   }
 }
-      // Ensure replayLog is always an array
-      const safeReplayLog = Array.isArray(gameState.replayLog) ? gameState.replayLog : [];
-      const safeInventory = Array.isArray(gameState.inventory) ? gameState.inventory : [];
-      
-      // CRITICAL FIX: Calculate final score before submission
-      const finalScore = gameState.calculateScore();
-      gameState.score = finalScore; // Store it in gameState for consistency
-      
-      console.log('🔧 Score calculation:', {
-        treasureValue: gameState.treasureValue,
-        depth: gameState.depth,
-        greed: gameState.greed,
-        finalScore: finalScore,
-        replayLogLength: safeReplayLog.length,
-        inventoryLength: safeInventory.length
-      });
-
-      // Format submission according to backend model
-      const submission = {
-        username: gameState.username || null,
-        seed: (gameState.seed || Date.now()).toString(), // Convert to string
-        version: "1.1.0",
-        daily: gameState.isDailyRun || false,
-        score: finalScore, // Include calculated score
-        replayLog: {
-          seed: (gameState.seed || Date.now()).toString(),
-          contentVersion: "1.1.0",
-          rooms: safeReplayLog.map(action => ({
-            depth: action.depth || 0,
-            type: action.action || 'unknown',
-            choice: action.details || null
-          })),
-          choices: safeReplayLog.map(action => action.action || 'unknown'),
-          rolls: gameState.roomsVisited || 0,
-          items: safeInventory.map(item => item.name || 'Unknown')
-        },
-        items: safeInventory.map(item => ({
-          hash: item.hash || 'unknown',
-          name: item.name || 'Unknown',
-          rarity: item.rarity || 'Common',
-          set: null,
-          effects: Array.isArray(item.effects) ? item.effects : [],
-          value: item.value || 0,
-          lore: item.lore || ""
-        }))
-      };
-
-      console.log('📝 Submitting score:', submission);
-      
-      const response = await fetch(`${backendUrl}/api/score/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(submission)
-      });
-
-      console.log('📝 Score submission response status:', response.status);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Score submitted successfully:', result);
-        
-        // Show confirmation
-        this.add.text(187.5, 450, 'Score submitted to leaderboard!', {
-          fontSize: '10px',
-          fill: '#4ecdc4',
-          fontFamily: 'Courier New'
-        }).setOrigin(0.5);
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Score submission failed:', response.status, errorText);
-      }
-    } catch (error) {
-      console.error('❌ Error submitting score:', error);
-      console.error('❌ Error details:', error.message, error.stack);
-    }
-  }
 
   newRun() {
     this.scene.start('TitleScene');
