@@ -1,17 +1,22 @@
 import Phaser from 'phaser';
 import { gameState } from '../utils/GameState.js';
-import { fetchScores } from '../utils/leaderboard.js';
-// Safe way to read the backend URL (works even if env isn’t defined)
-const BACKEND_URL =
-  (typeof import.meta !== 'undefined' &&
-   import.meta.env &&
-   import.meta.env.VITE_BACKEND_URL) || '';
+
+// --- Safe backend base URL (no trailing slash) ---
+const backendUrlRaw =
+  (import.meta && import.meta.env && import.meta.env.VITE_BACKEND_URL) ||
+  window.__BACKEND_URL || '';
+const BACKEND_URL = String(backendUrlRaw).replace(/\/$/, ''); // '' is fine (will 404 gracefully)
+
+// -------------------------------------------------
+
 export class HighScoresScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HighScoresScene' });
     this.currentPage = 0;
     this.scores = [];
     this.loading = false;
+    this.currentFilter = 'ALL';
+    this.filterButtons = [];
   }
 
   create() {
@@ -27,125 +32,54 @@ export class HighScoresScene extends Phaser.Scene {
       fontFamily: 'Courier New'
     }).setOrigin(0.5);
 
-    // Filter buttons
     this.createFilterButtons();
 
-    // Scores container
+    // Container for scores
     this.scoresContainer = this.add.container(0, 0);
 
-    // Navigation buttons
+    // Nav buttons + page label
     this.createNavigationButtons();
 
-    // Back button - positioned above navigation buttons with proper spacing
+    // Back
     this.createButton(187.5, 520, 'BACK TO MENU', () => this.returnToTitle());
 
-    // Load initial scores
-    async loadScores() {
-  if (this.loading) return;
-  this.loading = true;
-
-try {
-  const pageSize = 10;
-
-  // Replace this with your backend/Supabase URL
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-  let url = `${backendUrl}/api/leaderboard?page=${this.currentPage}&limit=${pageSize}`;
-  if (this.currentFilter === 'DAILY') url += '&daily=true';
-  if (this.currentFilter === 'CUSTOM') url += '&custom=true';
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch scores');
-
-  const data = await response.json();
-  this.scores = data.rows || [];
-
-  this.displayScores();
-  this.updateNavigationButtons();
-} catch (err) {
-  console.warn('Error loading scores:', err);
-  this.displayError('Unable to connect to server');
-} finally {
-  this.loading = false;
-}
-}
-  createFilterButtons() {
-    const filters = ['ALL', 'DAILY', 'CUSTOM'];
-    const startX = 60;
-    const buttonWidth = 85;
-    
-    this.currentFilter = 'ALL';
-    this.filterButtons = [];
-
-    filters.forEach((filter, index) => {
-      const x = startX + (index * buttonWidth);
-      const button = this.createFilterButton(x, 100, filter, () => this.setFilter(filter));
-      this.filterButtons.push({ button, filter });
-    });
-
-    this.updateFilterButtons();
+    // First load
+    this.loadScores();
   }
 
-  createFilterButton(x, y, text, callback) {
-    const button = this.add.container(x, y);
-    
-    const bg = this.add.rectangle(0, 0, 80, 25, 0x333333, 0.8);
-    bg.setStrokeStyle(1, 0x666666);
-    
-    const buttonText = this.add.text(0, 0, text, {
-      fontSize: '10px',
-      fill: '#ffffff',
-      fontFamily: 'Courier New'
-    }).setOrigin(0.5);
-
-    button.add([bg, buttonText]);
-    button.setSize(80, 25);
-    button.setInteractive();
-
-    button.on('pointerup', callback);
-    
-    // Store references for styling
-    button.bg = bg;
-    button.text = buttonText;
-
-    return button;
-  }
-
+  // --------- LOAD SCORES (robust, no env/template pitfalls) ----------
   async loadScores() {
     if (this.loading) return;
-    
     this.loading = true;
-    
+
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
-      
-      let url = `${backendUrl}/api/leaderboard?page=${this.currentPage}&limit=10`;
-      
-      if (this.currentFilter === 'DAILY') {
-        url += '&daily=true';
-      } else if (this.currentFilter === 'CUSTOM') {
-        url += '&custom=true';
-      }
+      // Build URL safely (no double slashes)
+      const page = Number(this.currentPage) || 0;
+      const params = new URLSearchParams({ page: String(page), limit: '10' });
+
+      if (this.currentFilter === 'DAILY') params.append('daily', 'true');
+      if (this.currentFilter === 'CUSTOM') params.append('custom', 'true');
+
+      const base = BACKEND_URL || ''; // if '', this will 404 and we show the error nicely
+      const url = `${base}/api/leaderboard?${params.toString()}`;
 
       const response = await fetch(url);
-      
-      if (response.ok) {
-        const data = await response.json();
-        this.scores = data.rows || [];
-        
-        this.displayScores();
-        this.updateNavigationButtons();
-      } else {
-        this.displayError('Failed to load scores');
-      }
-    } catch (error) {
-      console.warn('Error loading scores:', error);
-      this.displayError('Unable to connect to server');
-    }
-    
-    this.loading = false;
-  }
+      if (!response.ok) throw new Error('Failed to load scores');
 
+      const data = await response.json();
+      this.scores = Array.isArray(data?.rows) ? data.rows : [];
+
+      this.displayScores();
+      this.updateNavigationButtons();
+    } catch (err) {
+      console.warn('Error loading scores:', err);
+      this.displayError('Unable to connect to server');
+    } finally {
+      this.loading = false;
+    }
+  }
+  // -------------------------------------------------------------------
+}
   displayScores() {
     // Clear existing scores
     this.scoresContainer.removeAll(true);
