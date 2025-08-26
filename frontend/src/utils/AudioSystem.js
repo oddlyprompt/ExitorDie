@@ -73,7 +73,7 @@ export class AudioSystem {
         this.backgroundMusic = null;
       }
       
-      const response = await fetch('/Exitordie.ogg');
+      const response = await fetch('Exitordie.ogg');
       const arrayBuffer = await response.arrayBuffer();
       const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
       
